@@ -14,6 +14,7 @@ function App() {
   const startGame = (newScore = 0) => {
     setGameState('playing')
     setScore(newScore)
+    setSaltCount(0)
   }
 
   const updateScore = (newScore) => {
@@ -28,6 +29,7 @@ function App() {
   const restartGame = () => {
     setGameState('menu')
     setScore(0)
+    setSaltCount(0)
   }
 
   return (
@@ -60,7 +62,7 @@ function MenuScreen({ onStart }) {
           <li>Avoid sharp objects (💀) - they end the game!</li>
           <li>Dodge salt particles (❄️) - they slow you down</li>
           <li>Don't fall off the road edges!</li>
-          <li>Speed increases every 10 meters</li>
+          <li>Speed increases every 45 seconds</li>
         </ul>
       </div>
     </div>
@@ -82,6 +84,7 @@ function GameWorld({ onGameOver }) {
   const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [obstacles, setObstacles] = useState([])
   const [speed, setSpeed] = useState(2) // Initial speed
+  const [saltCount, setSaltCount] = useState(0) // Track salt encounters
   const [gameOver, setGameOver] = useState(false)
   const [distance, setDistance] = useState(0) // Track distance traveled
   const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
@@ -121,20 +124,17 @@ function GameWorld({ onGameOver }) {
     return () => clearInterval(distanceInterval)
   }, [speed, gameOver])
   
-  // Checkpoint system for acceleration
+  // Increase speed every 45 seconds
   useEffect(() => {
-    const checkpointInterval = setInterval(() => {
+    const speedInterval = setInterval(() => {
       if (!gameOver) {
-        // Increase speed every 300 meters (when distance is a multiple of 300)
-        if (Math.floor(distance) > 0 && Math.floor(distance) % 300 === 0 && Math.floor(distance) !== Math.floor(distance - 0.5)) {
-          // Only increase speed when crossing a 300m threshold
-          setSpeed(prev => prev + 0.5)
-        }
+        // Increase speed every 45 seconds
+        setSpeed(prev => prev + 0.5)
       }
-    }, 100) // Check frequently for distance milestones
+    }, 45000) // 45 seconds
     
-    return () => clearInterval(checkpointInterval)
-  }, [distance, gameOver])
+    return () => clearInterval(speedInterval)
+  }, [gameOver])
   
   // Curvy road effect - affects entire pathway
   useEffect(() => {
@@ -273,8 +273,26 @@ function GameWorld({ onGameOver }) {
             setGameOver(true)
             onGameOver(distance)
           } else {
-            // Salt slows down the snail temporarily
-            // We could implement a slow effect here
+            // Salt particle encountered
+            setSaltCount(prev => {
+              const newCount = prev + 1
+              if (newCount >= 2) {
+                // Game over after 2 salt encounters
+                setGameOver(true)
+                onGameOver(distance)
+              }
+              return newCount
+            })
+            
+            // Slow down temporarily
+            setSpeed(prev => Math.max(1, prev - 1)) // Reduce speed, minimum of 1
+            
+            // Reset speed after delay
+            setTimeout(() => {
+              if (!gameOver) {
+                setSpeed(prev => prev + 1) // Restore speed
+              }
+            }, 2000) // Restore speed after 2 seconds
           }
         }
       }
