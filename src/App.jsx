@@ -85,7 +85,7 @@ function GameWorld({ onGameOver }) {
   const [gameOver, setGameOver] = useState(false)
   const [distance, setDistance] = useState(0) // Track distance traveled
   const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
-  // Snail's Y position is fixed at 600 (bottom of screen)
+  const [snailY, setSnailY] = useState(600) // Snail's Y position (moving forward)
   const [checkpoints, setCheckpoints] = useState([]) // Road bump checkpoints
   const gameWorldRef = useRef(null)
   const animationFrameRef = useRef(null)
@@ -107,40 +107,37 @@ function GameWorld({ onGameOver }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [gameOver])
   
-  // Move the world around the snail (illusion of forward movement)
+  // Move snail forward continuously
   useEffect(() => {
-    const moveWorldInterval = setInterval(() => {
+    const moveSnailInterval = setInterval(() => {
       if (!gameOver) {
-        // Move obstacles and checkpoints relative to snail
-        setObstacles(prev => {
-          return prev.map(obstacle => ({
-            ...obstacle,
-            y: obstacle.y + speed * 1.5 // Move obstacles downward
-          })).filter(obstacle => obstacle.y < 800) // Remove off-screen obstacles
+        // Move snail forward automatically
+        setSnailY(prev => {
+          const newY = prev - speed
+          // When snail moves up, the distance increases
+          if (prev - newY > 0) {
+            setDistance(dist => dist + (prev - newY) / 10) // Scale the distance
+          }
+          return newY
         })
         
-        setCheckpoints(prev => {
-          return prev.map(cp => ({
-            ...cp,
-            y: cp.y + speed * 1.5 // Move checkpoints downward
-          })).filter(cp => cp.y < 800) // Remove off-screen checkpoints
-        })
-        
-        // Increase distance as the world moves
-        setDistance(prev => prev + speed / 10)
+        // Reset snail position when it gets too high (top of screen)
+        if (snailY < -100) {
+          setSnailY(700) // Reset to bottom
+        }
       }
     }, 16) // ~60fps
     
-    return () => clearInterval(moveWorldInterval)
-  }, [speed, gameOver])
+    return () => clearInterval(moveSnailInterval)
+  }, [speed, snailY, gameOver])
   
   // Checkpoint system for acceleration
   useEffect(() => {
     const checkpointInterval = setInterval(() => {
       if (!gameOver) {
-        // Increase speed every 10 meters (when distance is a multiple of 10)
-        if (Math.floor(distance) > 0 && Math.floor(distance) % 10 === 0 && Math.floor(distance) !== Math.floor(distance - 0.5)) {
-          // Only increase speed when crossing a 10m threshold
+        // Increase speed every 300 meters (when distance is a multiple of 300)
+        if (Math.floor(distance) > 0 && Math.floor(distance) % 300 === 0 && Math.floor(distance) !== Math.floor(distance - 1)) {
+          // Only increase speed when crossing a 300m threshold
           setSpeed(prev => prev + 0.5)
         }
       }
@@ -163,7 +160,7 @@ function GameWorld({ onGameOver }) {
     return () => clearInterval(curveInterval)
   }, [distance, gameOver])
   
-  // Generate obstacles
+  // Generate obstacles in fixed positions
   useEffect(() => {
     const obstacleInterval = setInterval(() => {
       if (!gameOver) {
@@ -183,7 +180,7 @@ function GameWorld({ onGameOver }) {
         // Select lanes for obstacles (ensure at least one lane is free)
         const obstacleLanes = obstacleCount === 1 ? [availableLanes[0]] : [availableLanes[0], availableLanes[1]]
         
-        // Create obstacles
+        // Create obstacles at fixed positions along the road
         obstacleLanes.forEach(laneIndex => {
           // Randomly select obstacle type (70% salt, 30% sharp)
           const isSharp = Math.random() > 0.7
@@ -192,14 +189,14 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: isSharp ? 'sharp' : 'salt',
-            y: -50, // Start above the screen
+            y: Math.random() * 800, // Random Y position along the road
             passed: false
           })
         })
         
         setObstacles(prev => [...prev, ...newObstacles])
       }
-    }, 2000) // Spawn obstacles every 2 seconds
+    }, 3000) // Spawn obstacles every 3 seconds
     
     return () => clearInterval(obstacleInterval)
   }, [gameOver])
@@ -232,24 +229,21 @@ function GameWorld({ onGameOver }) {
       lastTimeRef.current = timestamp
       
       if (!gameOver) {
-        // Move checkpoints
+        // Move checkpoints to match the snail's movement
         setCheckpoints(prev => {
           return prev.map(cp => ({
             ...cp,
-            y: cp.y + speed * (deltaTime / 16) // Adjust for frame rate
+            y: cp.y + speed * (deltaTime / 16) // Move checkpoints downward
           })).filter(cp => cp.y < 800) // Remove off-screen checkpoints
         })
         
-        // Move obstacles
+        // Keep obstacles in fixed positions (they don't move)
         setObstacles(prev => {
-          const updatedObstacles = prev.map(obstacle => ({
-            ...obstacle,
-            y: obstacle.y + speed * (deltaTime / 16) // Adjust for frame rate
-          })).filter(obstacle => obstacle.y < 800) // Remove off-screen obstacles
+          const updatedObstacles = prev.filter(obstacle => obstacle.y < 800 && obstacle.y > -100) // Keep obstacles in view
           
           // Check for passed obstacles to increase score
           updatedObstacles.forEach(obstacle => {
-            if (!obstacle.passed && obstacle.y > 600) { // Snail's Y position (fixed at 600)
+            if (!obstacle.passed && obstacle.y > snailY) { // Snail's Y position
               obstacle.passed = true
               // Score is increased in the main component
             }
@@ -272,14 +266,14 @@ function GameWorld({ onGameOver }) {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [speed, snailPosition, gameOver])
+  }, [speed, snailPosition, snailY, gameOver])
   
   const checkCollisions = () => {
     const snailLane = Math.floor(snailPosition / 100) // Convert position to lane (0, 1, 2)
     
     obstacles.forEach(obstacle => {
-      // Check if obstacle is at snail's position (snail is always at y=600)
-      if (Math.abs(obstacle.y - 600) < 50) { // Snail's vertical position range (50px tolerance)
+      // Check if obstacle is at snail's position
+      if (Math.abs(obstacle.y - snailY) < 50) { // Snail's vertical position range (50px tolerance)
         if (obstacle.lane === snailLane) {
           if (obstacle.type === 'sharp') {
             // Game over for sharp obstacles
@@ -336,7 +330,7 @@ function GameWorld({ onGameOver }) {
           />
         ))}
       </div>
-      <Snail position={snailPosition} />
+      <Snail position={snailPosition} snailY={snailY} />
       {obstacles.map(obstacle => (
         <Obstacle 
           key={obstacle.id} 
@@ -358,7 +352,7 @@ function Road() {
   )
 }
 
-function Snail({ position }) {
+function Snail({ position, snailY }) {
   // Calculate lane position (0, 1, 2) from pixel position
   const lane = Math.floor(position / 100)
   const lanePositions = [50, 150, 250] // Center positions of each lane
@@ -368,7 +362,7 @@ function Snail({ position }) {
       className="snail" 
       style={{ 
         left: `${lanePositions[lane]}px`, // Position in the center of the lane
-        bottom: '100px' // Fixed position at the bottom of the screen
+        bottom: `${600 - snailY}px` // Position relative to the screen
       }}
     >
       🐌
