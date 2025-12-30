@@ -248,8 +248,10 @@ function GameWorld({ onGameOver }) {
         // Check collisions
         checkCollisions()
         
-        // Log current game state for debugging
-        console.log(`Snail position: ${snailPosition}, Lane: ${Math.floor(snailPosition / 100)}, Current speed: ${speed}, Distance: ${Math.round(distance)}`)
+        // Log current game state for debugging (only occasionally to avoid spam)
+        if (Math.floor(distance) % 50 === 0) {
+          console.log(`Snail position: ${snailPosition}, Lane: ${Math.floor(snailPosition / 100)}, Current speed: ${speed}, Distance: ${Math.round(distance)}`)
+        }
         
         animationFrameRef.current = requestAnimationFrame(updateGame)
       }
