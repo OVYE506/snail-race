@@ -248,6 +248,9 @@ function GameWorld({ onGameOver }) {
         // Check collisions
         checkCollisions()
         
+        // Log current game state for debugging
+        console.log(`Snail position: ${snailPosition}, Lane: ${Math.floor(snailPosition / 100)}, Current speed: ${speed}, Distance: ${Math.round(distance)}`)
+        
         animationFrameRef.current = requestAnimationFrame(updateGame)
       }
     }
@@ -266,7 +269,8 @@ function GameWorld({ onGameOver }) {
     
     obstacles.forEach(obstacle => {
       // Check if obstacle is at snail's position (snail is fixed at y=600)
-      if (Math.abs(obstacle.y - 600) < 50) { // Snail's vertical position range (50px tolerance)
+      // Adjust the collision tolerance to be more accurate
+      if (Math.abs(obstacle.y - 600) < 30) { // Tighter vertical collision tolerance
         if (obstacle.lane === snailLane) {
           console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
           if (obstacle.type === 'sharp') {
