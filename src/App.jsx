@@ -14,6 +14,7 @@ function App() {
   const startGame = (newScore = 0) => {
     setGameState('playing')
     setScore(newScore)
+    setSaltCount(0)
   }
 
   const updateScore = (newScore) => {
@@ -28,6 +29,7 @@ function App() {
   const restartGame = () => {
     setGameState('menu')
     setScore(0)
+    setSaltCount(0)
   }
 
   return (
@@ -82,6 +84,7 @@ function GameWorld({ onGameOver }) {
   const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [obstacles, setObstacles] = useState([])
   const [speed, setSpeed] = useState(2) // Initial speed
+  const [saltCount, setSaltCount] = useState(0) // Track salt encounters
   const [gameOver, setGameOver] = useState(false)
   const [distance, setDistance] = useState(0) // Track distance traveled
   const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
@@ -265,9 +268,32 @@ function GameWorld({ onGameOver }) {
       // Check if obstacle is at snail's position (snail is fixed at y=600)
       if (Math.abs(obstacle.y - 600) < 50) { // Snail's vertical position range (50px tolerance)
         if (obstacle.lane === snailLane) {
-          // Game over for any obstacle contact
-          setGameOver(true)
-          onGameOver(distance)
+          if (obstacle.type === 'sharp') {
+            // Game over for sharp obstacles
+            setGameOver(true)
+            onGameOver(distance)
+          } else {
+            // Salt particle encountered
+            setSaltCount(prev => {
+              const newCount = prev + 1
+              if (newCount >= 2) {
+                // Game over after 2 salt encounters
+                setGameOver(true)
+                onGameOver(distance)
+              }
+              return newCount
+            })
+            
+            // Slow down temporarily
+            setSpeed(prev => Math.max(1, prev - 1)) // Reduce speed, minimum of 1
+            
+            // Reset speed after delay
+            setTimeout(() => {
+              if (!gameOver) {
+                setSpeed(prev => prev + 1) // Restore speed
+              }
+            }, 2000) // Restore speed after 2 seconds
+          }
         }
       }
     })
