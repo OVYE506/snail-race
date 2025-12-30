@@ -268,6 +268,7 @@ function GameWorld({ onGameOver }) {
       // Check if obstacle is at snail's position (snail is fixed at y=600)
       if (Math.abs(obstacle.y - 600) < 50) { // Snail's vertical position range (50px tolerance)
         if (obstacle.lane === snailLane) {
+          console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
           if (obstacle.type === 'sharp') {
             // Game over for sharp obstacles
             setGameOver(true)
@@ -276,6 +277,7 @@ function GameWorld({ onGameOver }) {
             // Salt particle encountered
             setSaltCount(prev => {
               const newCount = prev + 1
+              console.log(`Salt count: ${newCount}`) // Debug log
               if (newCount >= 2) {
                 // Game over after 2 salt encounters
                 setGameOver(true)
@@ -291,6 +293,7 @@ function GameWorld({ onGameOver }) {
             setTimeout(() => {
               if (!gameOver) {
                 setSpeed(prev => prev + 1) // Restore speed
+                console.log('Speed restored after salt effect') // Debug log
               }
             }, 2000) // Restore speed after 2 seconds
           }
@@ -300,6 +303,7 @@ function GameWorld({ onGameOver }) {
     
     // Check if snail fell off the road
     if (snailPosition < 0 || snailPosition > 300) {
+      console.log('Snail fell off the road') // Debug log
       setGameOver(true)
       onGameOver(distance)
     }
