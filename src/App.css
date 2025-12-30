@@ -126,6 +126,7 @@
   width: 300px;
   height: 100%;
   transition: transform 0.1s ease;
+  overflow: hidden;
 }
 
 .road {
@@ -168,6 +169,7 @@
   );
   animation: roadMove 1s linear infinite;
   transform: translateY(-50%);
+  z-index: 1;
 }
 
 @keyframes roadMove {
@@ -236,14 +238,14 @@
 
 .checkpoint {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  transform: translateX(0);
   font-size: 2rem;
   color: #f8f8f8;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
   z-index: 3;
   user-select: none;
-  width: 100%;
+  width: 300px; /* Same width as the road */
   text-align: center;
   opacity: 0.7;
 }

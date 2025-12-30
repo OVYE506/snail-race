@@ -332,14 +332,14 @@ function GameWorld({ onGameOver }) {
             checkpoint={checkpoint} 
           />
         ))}
+        <Snail position={snailPosition} snailY={snailY} />
+        {obstacles.map(obstacle => (
+          <Obstacle 
+            key={obstacle.id} 
+            obstacle={obstacle} 
+          />
+        ))}
       </div>
-      <Snail position={snailPosition} snailY={snailY} />
-      {obstacles.map(obstacle => (
-        <Obstacle 
-          key={obstacle.id} 
-          obstacle={obstacle} 
-        />
-      ))}
     </div>
   )
 }
@@ -394,7 +394,7 @@ function Checkpoint({ checkpoint }) {
     <div 
       className="checkpoint"
       style={{ 
-        top: `${checkpoint.y}px`
+        top: `${checkpoint.y}px`,
       }}
     >
       ≈≈≈
