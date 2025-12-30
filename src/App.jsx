@@ -79,7 +79,7 @@ function GameScreen({ score, onGameOver }) {
 }
 
 function GameWorld({ onGameOver }) {
-  const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road
+  const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [obstacles, setObstacles] = useState([])
   const [speed, setSpeed] = useState(2) // Initial speed
   const [gameOver, setGameOver] = useState(false)
@@ -97,9 +97,9 @@ function GameWorld({ onGameOver }) {
       if (gameOver) return
       
       if (e.key === 'ArrowLeft') {
-        setSnailPosition(prev => Math.max(0, prev - 20))
+        setSnailPosition(prev => Math.max(0, Math.floor(prev / 100) - 1) * 100 + 50)
       } else if (e.key === 'ArrowRight') {
-        setSnailPosition(prev => Math.min(300, prev + 20))
+        setSnailPosition(prev => Math.min(200, Math.floor(prev / 100) + 1) * 100 + 50)
       }
     }
     
@@ -107,9 +107,9 @@ function GameWorld({ onGameOver }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [gameOver])
   
-  // Increase speed when passing checkpoints
+  // Move snail forward continuously
   useEffect(() => {
-    const checkpointInterval = setInterval(() => {
+    const moveSnailInterval = setInterval(() => {
       if (!gameOver) {
         // Move snail forward automatically
         setSnailY(prev => {
@@ -128,14 +128,23 @@ function GameWorld({ onGameOver }) {
       }
     }, 16) // ~60fps
     
-    return () => clearInterval(checkpointInterval)
+    return () => clearInterval(moveSnailInterval)
   }, [speed, snailY, gameOver])
   
-  // Increase speed every 10 meters
+  // Checkpoint system for acceleration
   useEffect(() => {
-    const newSpeed = 2 + Math.floor(distance / 10) * 0.5
-    setSpeed(newSpeed)
-  }, [distance])
+    const checkpointInterval = setInterval(() => {
+      if (!gameOver) {
+        // Increase speed every 10 meters (when distance is a multiple of 10)
+        if (Math.floor(distance) > 0 && Math.floor(distance) % 10 === 0 && Math.floor(distance) !== Math.floor(distance - 1)) {
+          // Only increase speed when crossing a 10m threshold
+          setSpeed(prev => prev + 0.5)
+        }
+      }
+    }, 100) // Check frequently for distance milestones
+    
+    return () => clearInterval(checkpointInterval)
+  }, [distance, gameOver])
   
   // Curvy road effect
   useEffect(() => {
@@ -180,7 +189,7 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: isSharp ? 'sharp' : 'salt',
-            y: Math.random() * 800, // Random Y position
+            y: -50, // Start above the screen
             passed: false
           })
         })
@@ -292,11 +301,15 @@ function GameWorld({ onGameOver }) {
     if (gameWorldRef.current && !gameOver) {
       const rect = gameWorldRef.current.getBoundingClientRect()
       const roadLeft = rect.left + (rect.width - 300) / 2 // Road is 300px wide, centered
-      const newPosition = e.clientX - roadLeft
+      const rawPosition = e.clientX - roadLeft
       
-      // Keep snail within road bounds
-      if (newPosition >= 0 && newPosition <= 300) {
-        setSnailPosition(newPosition)
+      // Calculate which lane the user clicked on (0, 1, or 2)
+      const lane = Math.min(2, Math.max(0, Math.floor(rawPosition / 100)))
+      
+      // Keep snail within road bounds and snap to lane center
+      if (rawPosition >= 0 && rawPosition <= 300) {
+        const lanePositions = [50, 150, 250] // Center positions of each lane
+        setSnailPosition(lanePositions[lane])
       }
     }
   }
@@ -344,11 +357,15 @@ function Road() {
 }
 
 function Snail({ position, snailY }) {
+  // Calculate lane position (0, 1, 2) from pixel position
+  const lane = Math.floor(position / 100)
+  const lanePositions = [50, 150, 250] // Center positions of each lane
+  
   return (
     <div 
       className="snail" 
       style={{ 
-        left: `${position}px`,
+        left: `${lanePositions[lane]}px`, // Position in the center of the lane
         bottom: `${600 - snailY}px` // Position relative to the screen
       }}
     >
