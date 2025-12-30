@@ -268,39 +268,44 @@ function GameWorld({ onGameOver }) {
     const snailLane = Math.floor(snailPosition / 100) // Convert position to lane (0, 1, 2)
     
     obstacles.forEach(obstacle => {
-      // Check if obstacle is at snail's position (snail is fixed at y=600)
-      // Adjust the collision tolerance to be more accurate
-      if (Math.abs(obstacle.y - 600) < 30) { // Tighter vertical collision tolerance
-        if (obstacle.lane === snailLane) {
-          console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
-          if (obstacle.type === 'sharp') {
-            // Game over for sharp obstacles
-            setGameOver(true)
-            onGameOver(distance)
-          } else {
-            // Salt particle encountered
-            setSaltCount(prev => {
-              const newCount = prev + 1
-              console.log(`Salt count: ${newCount}`) // Debug log
-              if (newCount >= 2) {
-                // Game over after 2 salt encounters
-                setGameOver(true)
-                onGameOver(distance)
-              }
-              return newCount
-            })
-            
-            // Slow down temporarily
-            setSpeed(prev => Math.max(1, prev - 1)) // Reduce speed, minimum of 1
-            
-            // Reset speed after delay
-            setTimeout(() => {
-              if (!gameOver) {
-                setSpeed(prev => prev + 1) // Restore speed
-                console.log('Speed restored after salt effect') // Debug log
-              }
-            }, 2000) // Restore speed after 2 seconds
-          }
+      // More precise collision detection
+      // Snail is fixed at bottom, so its Y position is consistently at 600
+      const snailY = 600;
+      const snailHeight = 40; // Approximate height of snail element
+      const obstacleHeight = 40; // Approximate height of obstacle element
+      
+      // Check vertical overlap
+      const verticalOverlap = (obstacle.y < snailY + snailHeight) && (obstacle.y + obstacleHeight > snailY);
+      
+      if (verticalOverlap && obstacle.lane === snailLane) {
+        console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
+        if (obstacle.type === 'sharp') {
+          // Game over for sharp obstacles
+          setGameOver(true)
+          onGameOver(distance)
+        } else {
+          // Salt particle encountered
+          setSaltCount(prev => {
+            const newCount = prev + 1
+            console.log(`Salt count: ${newCount}`) // Debug log
+            if (newCount >= 2) {
+              // Game over after 2 salt encounters
+              setGameOver(true)
+              onGameOver(distance)
+            }
+            return newCount
+          })
+          
+          // Slow down temporarily
+          setSpeed(prev => Math.max(1, prev - 1)) // Reduce speed, minimum of 1
+          
+          // Reset speed after delay
+          setTimeout(() => {
+            if (!gameOver) {
+              setSpeed(prev => prev + 1) // Restore speed
+              console.log('Speed restored after salt effect') // Debug log
+            }
+          }, 2000) // Restore speed after 2 seconds
         }
       }
     })
