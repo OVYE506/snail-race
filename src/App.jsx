@@ -146,21 +146,21 @@ function GameWorld({ onGameOver }) {
     return () => clearInterval(checkpointInterval)
   }, [distance, gameOver])
   
-  // Curvy road effect
+  // Curvy road effect - affects entire pathway
   useEffect(() => {
     if (gameOver) return
     
     const curveInterval = setInterval(() => {
       setRoadOffset(prev => {
-        // Create a wave-like motion
-        return Math.sin(distance / 5) * 30
+        // Create a wave-like motion that affects the entire pathway
+        return Math.sin(distance / 10) * 20
       })
     }, 100)
     
     return () => clearInterval(curveInterval)
   }, [distance, gameOver])
   
-  // Generate obstacles in fixed positions
+  // Generate obstacles in the unified pathway
   useEffect(() => {
     const obstacleInterval = setInterval(() => {
       if (!gameOver) {
@@ -180,7 +180,7 @@ function GameWorld({ onGameOver }) {
         // Select lanes for obstacles (ensure at least one lane is free)
         const obstacleLanes = obstacleCount === 1 ? [availableLanes[0]] : [availableLanes[0], availableLanes[1]]
         
-        // Create obstacles at fixed positions along the road
+        // Create obstacles in the unified pathway
         obstacleLanes.forEach(laneIndex => {
           // Randomly select obstacle type (70% salt, 30% sharp)
           const isSharp = Math.random() > 0.7
@@ -189,14 +189,14 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: isSharp ? 'sharp' : 'salt',
-            y: Math.random() * 800, // Random Y position along the road
+            y: Math.random() * 200 - 100, // Random Y position in a range above the screen
             passed: false
           })
         })
         
         setObstacles(prev => [...prev, ...newObstacles])
       }
-    }, 3000) // Spawn obstacles every 3 seconds
+    }, 2000) // Spawn obstacles every 2 seconds
     
     return () => clearInterval(obstacleInterval)
   }, [gameOver])
@@ -237,9 +237,12 @@ function GameWorld({ onGameOver }) {
           })).filter(cp => cp.y < 800) // Remove off-screen checkpoints
         })
         
-        // Keep obstacles in fixed positions (they don't move)
+        // Move obstacles to match the snail's movement (unified pathway)
         setObstacles(prev => {
-          const updatedObstacles = prev.filter(obstacle => obstacle.y < 800 && obstacle.y > -100) // Keep obstacles in view
+          const updatedObstacles = prev.map(obstacle => ({
+            ...obstacle,
+            y: obstacle.y + speed * (deltaTime / 16) // Move obstacles downward
+          })).filter(obstacle => obstacle.y < 800 && obstacle.y > -100) // Keep obstacles in view
           
           // Check for passed obstacles to increase score
           updatedObstacles.forEach(obstacle => {
