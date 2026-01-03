@@ -198,7 +198,7 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: obstacleType,
-            y: -50, // Start above the screen
+            y: 800, // Start below the screen and move upward to approach the snail
             passed: false
           })
         })
@@ -218,7 +218,7 @@ function GameWorld({ onGameOver }) {
         setCheckpoints(prev => {
           const newCheckpoint = {
             id: Date.now() + Math.random(),
-            y: -50, // Start above the screen
+            y: 800, // Start below the screen and move upward
           }
           // Keep only recent checkpoints
           return [...prev.filter(cp => cp.y < 800), newCheckpoint]
@@ -251,7 +251,7 @@ function GameWorld({ onGameOver }) {
           const updatedObstacles = prev.map(obstacle => ({
             ...obstacle,
             y: obstacle.y - speed * (deltaTime / 16) // Move obstacles upward (opposite to snail)
-          })).filter(obstacle => obstacle.y > -100) // Keep obstacles in view
+          })).filter(obstacle => obstacle.y > -100 && obstacle.y < 900) // Keep obstacles in view
           
           // Check for passed obstacles to increase score
           updatedObstacles.forEach(obstacle => {
