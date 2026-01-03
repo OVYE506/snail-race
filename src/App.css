@@ -216,6 +216,12 @@
   animation: spin 3s linear infinite;
 }
 
+.obstacle.nitro {
+  color: #007bff;
+  text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+  animation: nitroFloat 2s infinite ease-in-out, spin 4s linear infinite;
+}
+
 @keyframes float {
   0% { transform: translateX(-50%) translateY(0px); }
   50% { transform: translateX(-50%) translateY(-10px); }
@@ -225,6 +231,12 @@
 @keyframes spin {
   0% { transform: translateX(-50%) rotate(0deg); }
   100% { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes nitroFloat {
+  0% { transform: translateX(-50%) translateY(0px) scale(1); }
+  50% { transform: translateX(-50%) translateY(-10px) scale(1.1); }
+  100% { transform: translateX(-50%) translateY(0px) scale(1); }
 }
 
 /* Game over screen */

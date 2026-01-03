@@ -183,13 +183,21 @@ function GameWorld({ onGameOver }) {
         
         // Create obstacles in the unified pathway
         obstacleLanes.forEach(laneIndex => {
-          // Randomly select obstacle type (70% salt, 30% sharp)
-          const isSharp = Math.random() > 0.7
+          // Randomly select obstacle type (60% salt, 25% sharp, 15% nitro)
+          const rand = Math.random()
+          let obstacleType
+          if (rand < 0.15) {
+            obstacleType = 'nitro'
+          } else if (rand < 0.40) {
+            obstacleType = 'sharp'
+          } else {
+            obstacleType = 'salt'
+          }
           
           newObstacles.push({
             id: Date.now() + Math.random(),
             lane: laneIndex,
-            type: isSharp ? 'sharp' : 'salt',
+            type: obstacleType,
             y: -50, // Start above the screen
             passed: false
           })
@@ -299,6 +307,13 @@ function GameWorld({ onGameOver }) {
           // Game over for sharp obstacles
           setGameOver(true);
           onGameOver(distance);
+        } else if (obstacle.type === 'nitro') {
+          // Nitro booster - increase speed
+          setSpeed(prev => prev + 2); // Boost speed
+          console.log('Nitro boost activated!');
+          
+          // Remove the nitro obstacle after collection
+          setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
         } else {
           // Salt particle encountered
           setSaltCount(prev => {
@@ -327,9 +342,9 @@ function GameWorld({ onGameOver }) {
       }
     });
     
-    // Check if snail fell off the road
+    // Check if snail fell off the road (crosses lane edges)
     if (snailPosition < 0 || snailPosition > 300) {
-      console.log('Snail fell off the road'); // Debug log
+      console.log('Snail crossed lane edge - game over'); // Debug log
       setGameOver(true);
       onGameOver(distance);
     }
@@ -422,7 +437,7 @@ function Obstacle({ obstacle }) {
         top: `${obstacle.y}px`
       }}
     >
-      {obstacle.type === 'sharp' ? '💀' : '❄️'}
+      {obstacle.type === 'sharp' ? '💀' : obstacle.type === 'nitro' ? '🔵' : '❄️'}
     </div>
   )
 }
