@@ -109,31 +109,33 @@ function App() {
             // When snail moves forward, the distance increases
             if (newY - prev > 0) {
               const distanceIncrease = (newY - prev) / 10
-              setDistance(prevDist => prevDist + distanceIncrease)
+              setDistance(prevDist => {
+                const newDist = prevDist + distanceIncrease;
+                // Check if distance threshold is reached
+                if (newDist > 1000) { // After traveling 1000 meters
+                  setGameOver(true);
+                  onGameOver(newDist);
+                }
+                return newDist;
+              });
               // Update score to match distance
-              setScore(prevDist => prevDist + distanceIncrease)
+              setScore(prevDist => prevDist + distanceIncrease);
             }
-            return newY
-          })
+            return newY;
+          });
           
-          // Check if snail has traveled far enough (game ends)
-          if (distance > 1000) { // After traveling 1000 meters
-            setGameOver(true)
-            onGameOver(distance)
-          }
-          
-          animationFrameRef.current = requestAnimationFrame(updateGame)
+          animationFrameRef.current = requestAnimationFrame(updateGame);
         }
       }
       
-      animationFrameRef.current = requestAnimationFrame(updateGame)
+      animationFrameRef.current = requestAnimationFrame(updateGame);
       
       return () => {
         if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current)
+          cancelAnimationFrame(animationFrameRef.current);
         }
-      }
-    }, [speed, snailY, gameOver, distance, onGameOver])
+      };
+    }, [speed, snailY, gameOver, onGameOver])
     
     const handleSnailDrag = (e) => {
       if (gameWorldRef.current && !gameOver) {
