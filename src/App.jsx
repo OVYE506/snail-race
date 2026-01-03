@@ -109,12 +109,9 @@ function App() {
             // When snail moves forward, the distance increases
             if (newY - prev > 0) {
               const distanceIncrease = (newY - prev) / 10
-              setDistance(prevDist => {
-                const newDistValue = prevDist + distanceIncrease
-                // Update score as well
-                setScore(newDistValue)
-                return newDistValue
-              })
+              setDistance(prevDist => prevDist + distanceIncrease)
+              // Update score to match distance
+              setScore(prevDist => prevDist + distanceIncrease)
             }
             return newY
           })
