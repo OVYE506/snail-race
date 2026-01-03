@@ -85,6 +85,7 @@ function GameWorld({ onGameOver }) {
   const [obstacles, setObstacles] = useState([])
   const [speed, setSpeed] = useState(2) // Initial speed
   const [saltCount, setSaltCount] = useState(0) // Track salt encounters
+  const [snailY, setSnailY] = useState(600) // Snail's Y position (moving forward)
   const [gameOver, setGameOver] = useState(false)
   const [distance, setDistance] = useState(0) // Track distance traveled
   const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
@@ -110,19 +111,29 @@ function GameWorld({ onGameOver }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [gameOver])
   
-  // Keep snail in fixed position at the bottom
+  // Move snail forward continuously
   useEffect(() => {
-    // Snail stays fixed at the bottom of the screen
-    // Distance increases as the world moves
-    const distanceInterval = setInterval(() => {
+    const moveSnailInterval = setInterval(() => {
       if (!gameOver) {
-        // Increase distance as the world moves
-        setDistance(prev => prev + speed / 10)
+        // Move snail forward automatically
+        setSnailY(prev => {
+          const newY = prev - speed
+          // When snail moves up, the distance increases
+          if (prev - newY > 0) {
+            setDistance(dist => dist + (prev - newY) / 10) // Scale the distance
+          }
+          return newY
+        })
+        
+        // Reset snail position when it gets too high (top of screen)
+        if (snailY < -100) {
+          setSnailY(700) // Reset to bottom
+        }
       }
     }, 16) // ~60fps
     
-    return () => clearInterval(distanceInterval)
-  }, [speed, gameOver])
+    return () => clearInterval(moveSnailInterval)
+  }, [speed, snailY, gameOver])
   
   // Increase speed every 45 seconds
   useEffect(() => {
@@ -223,20 +234,20 @@ function GameWorld({ onGameOver }) {
         setCheckpoints(prev => {
           return prev.map(cp => ({
             ...cp,
-            y: cp.y + speed * (deltaTime / 16) // Move checkpoints downward
-          })).filter(cp => cp.y < 800) // Remove off-screen checkpoints
+            y: cp.y - speed * (deltaTime / 16) // Move checkpoints upward (opposite to snail)
+          })).filter(cp => cp.y > -100) // Remove off-screen checkpoints
         })
         
         // Move obstacles
         setObstacles(prev => {
           const updatedObstacles = prev.map(obstacle => ({
             ...obstacle,
-            y: obstacle.y + speed * (deltaTime / 16) // Move obstacles downward
-          })).filter(obstacle => obstacle.y < 800 && obstacle.y > -100) // Keep obstacles in view
+            y: obstacle.y - speed * (deltaTime / 16) // Move obstacles upward (opposite to snail)
+          })).filter(obstacle => obstacle.y > -100) // Keep obstacles in view
           
           // Check for passed obstacles to increase score
           updatedObstacles.forEach(obstacle => {
-            if (!obstacle.passed && obstacle.y > 600) { // Snail's Y position (fixed at 600)
+            if (!obstacle.passed && obstacle.y < snailY) { // Snail's Y position (moving)
               obstacle.passed = true
               // Score is increased in the main component
             }
@@ -264,7 +275,7 @@ function GameWorld({ onGameOver }) {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [speed, snailPosition, gameOver])
+  }, [speed, snailPosition, snailY, gameOver])
   
   const checkCollisions = () => {
     if (gameOver) return; // Don't process collisions if game is over
@@ -274,15 +285,13 @@ function GameWorld({ onGameOver }) {
     // Process each obstacle for collision
     obstacles.forEach(obstacle => {
       // Immediate and sensitive collision detection
-      // Snail is fixed at bottom, so its Y position is consistently at 600
-      const snailY = 600;
       const snailHeight = 80; // Further increased height for maximum sensitivity
       const obstacleHeight = 80; // Further increased height for maximum sensitivity
       
-      // Check vertical overlap with maximum sensitivity
+      // Check vertical overlap with maximum sensitivity using actual snail Y position
       const verticalOverlap = (obstacle.y < snailY + snailHeight) && (obstacle.y + obstacleHeight > snailY);
       
-      // Check if collision occurred at the current frame and hasn't been processed yet
+      // Check if collision occurred at the current frame
       if (verticalOverlap && obstacle.lane === snailLane) {
         console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
         
@@ -361,7 +370,7 @@ function GameWorld({ onGameOver }) {
             checkpoint={checkpoint} 
           />
         ))}
-        <Snail position={snailPosition} />
+        <Snail position={snailPosition} snailY={snailY} />
         {obstacles.map(obstacle => (
           <Obstacle 
             key={obstacle.id} 
@@ -384,7 +393,7 @@ function Road() {
   )
 }
 
-function Snail({ position }) {
+function Snail({ position, snailY }) {
   // Calculate lane position (0, 1, 2) from pixel position
   const lane = Math.floor(position / 100)
   const lanePositions = [50, 150, 250] // Center positions of each lane
@@ -394,7 +403,7 @@ function Snail({ position }) {
       className="snail" 
       style={{ 
         left: `${lanePositions[lane]}px`, // Position in the center of the lane
-        bottom: '100px' // Fixed position at the bottom of the screen
+        bottom: `${600 - snailY}px` // Position based on snail's Y position
       }}
     >
       🐌
