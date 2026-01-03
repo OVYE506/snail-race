@@ -282,12 +282,7 @@ function GameWorld({ onGameOver }) {
       }
     });
     
-    // Check if snail fell off the road (crosses lane edges)
-    if (snailPosition < 0 || snailPosition > 300) {
-      console.log('Snail crossed lane edge - game over'); // Debug log
-      setGameOver(true);
-      onGameOver(distance);
-    }
+    // Removed lane edge crossing game over condition
   }
   
   const handleSnailDrag = (e) => {
