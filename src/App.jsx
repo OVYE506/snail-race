@@ -180,8 +180,7 @@ function GameWorld({ onGameOver }) {
             lane: laneIndex,
             type: isSharp ? 'sharp' : 'salt',
             y: -50, // Start above the screen
-            passed: false,
-            processed: false
+            passed: false
           })
         })
         
@@ -268,14 +267,12 @@ function GameWorld({ onGameOver }) {
   }, [speed, snailPosition, gameOver])
   
   const checkCollisions = () => {
+    if (gameOver) return; // Don't process collisions if game is over
+    
     const snailLane = Math.floor(snailPosition / 100) // Convert position to lane (0, 1, 2)
     
-    // Create a copy of obstacles to avoid issues with state updates during iteration
-    const currentObstacles = [...obstacles];
-    
-    for (let i = 0; i < currentObstacles.length; i++) {
-      const obstacle = currentObstacles[i];
-      
+    // Process each obstacle for collision
+    obstacles.forEach(obstacle => {
       // Immediate and sensitive collision detection
       // Snail is fixed at bottom, so its Y position is consistently at 600
       const snailY = 600;
@@ -285,21 +282,14 @@ function GameWorld({ onGameOver }) {
       // Check vertical overlap with maximum sensitivity
       const verticalOverlap = (obstacle.y < snailY + snailHeight) && (obstacle.y + obstacleHeight > snailY);
       
-      if (verticalOverlap && obstacle.lane === snailLane && !obstacle.processed) {
+      // Check if collision occurred at the current frame and hasn't been processed yet
+      if (verticalOverlap && obstacle.lane === snailLane) {
         console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
-        
-        // Mark obstacle as processed to prevent multiple collision detections
-        setObstacles(prev => {
-          return prev.map(obs => 
-            obs.id === obstacle.id ? {...obs, processed: true} : obs
-          );
-        });
         
         if (obstacle.type === 'sharp') {
           // Game over for sharp obstacles
           setGameOver(true);
           onGameOver(distance);
-          return; // Exit immediately after game over
         } else {
           // Salt particle encountered
           setSaltCount(prev => {
@@ -309,7 +299,7 @@ function GameWorld({ onGameOver }) {
               // Game over after 2 salt encounters
               setGameOver(true);
               onGameOver(distance);
-              return newCount; // Exit immediately after game over
+              return newCount;
             }
             return newCount;
           });
@@ -326,7 +316,7 @@ function GameWorld({ onGameOver }) {
           }, 2000); // Restore speed after 2 seconds
         }
       }
-    }
+    });
     
     // Check if snail fell off the road
     if (snailPosition < 0 || snailPosition > 300) {
