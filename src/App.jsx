@@ -274,13 +274,13 @@ function GameWorld({ onGameOver }) {
     const currentObstacles = [...obstacles];
     
     currentObstacles.forEach(obstacle => {
-      // More precise collision detection
+      // More sensitive collision detection
       // Snail is fixed at bottom, so its Y position is consistently at 600
       const snailY = 600;
-      const snailHeight = 40; // Approximate height of snail element
-      const obstacleHeight = 40; // Approximate height of obstacle element
+      const snailHeight = 60; // Increased height for more sensitive detection
+      const obstacleHeight = 60; // Increased height for more sensitive detection
       
-      // Check vertical overlap
+      // Check vertical overlap with more sensitive bounds
       const verticalOverlap = (obstacle.y < snailY + snailHeight) && (obstacle.y + obstacleHeight > snailY);
       
       if (verticalOverlap && obstacle.lane === snailLane && !obstacle.processed) {
