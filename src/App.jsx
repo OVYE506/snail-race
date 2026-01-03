@@ -135,7 +135,7 @@ function App() {
           cancelAnimationFrame(animationFrameRef.current);
         }
       };
-    }, [speed, snailY, gameOver, onGameOver])
+    }, [speed, gameOver, onGameOver])
     
     const handleSnailDrag = (e) => {
       if (gameWorldRef.current && !gameOver) {
