@@ -180,7 +180,8 @@ function GameWorld({ onGameOver }) {
             lane: laneIndex,
             type: isSharp ? 'sharp' : 'salt',
             y: -50, // Start above the screen
-            passed: false
+            passed: false,
+            processed: false
           })
         })
         
@@ -269,7 +270,10 @@ function GameWorld({ onGameOver }) {
   const checkCollisions = () => {
     const snailLane = Math.floor(snailPosition / 100) // Convert position to lane (0, 1, 2)
     
-    obstacles.forEach(obstacle => {
+    // Create a copy of obstacles to avoid issues with state updates during iteration
+    const currentObstacles = [...obstacles];
+    
+    currentObstacles.forEach(obstacle => {
       // More precise collision detection
       // Snail is fixed at bottom, so its Y position is consistently at 600
       const snailY = 600;
@@ -279,8 +283,12 @@ function GameWorld({ onGameOver }) {
       // Check vertical overlap
       const verticalOverlap = (obstacle.y < snailY + snailHeight) && (obstacle.y + obstacleHeight > snailY);
       
-      if (verticalOverlap && obstacle.lane === snailLane) {
+      if (verticalOverlap && obstacle.lane === snailLane && !obstacle.processed) {
         console.log(`Collision detected with ${obstacle.type} at lane ${obstacle.lane}`) // Debug log
+        
+        // Mark obstacle as processed to prevent multiple collision detections
+        obstacle.processed = true;
+        
         if (obstacle.type === 'sharp') {
           // Game over for sharp obstacles
           setGameOver(true)
