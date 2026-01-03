@@ -82,7 +82,7 @@ function GameWorld({ onGameOver }) {
   const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [obstacles, setObstacles] = useState([])
   const [speed, setSpeed] = useState(2) // Initial speed
-  const [snailY, setSnailY] = useState(600) // Snail's Y position (moving forward)
+  const [snailY, setSnailY] = useState(100) // Snail's Y position (moving forward - starting at bottom)
   const [gameOver, setGameOver] = useState(false)
   const [distance, setDistance] = useState(0) // Track distance traveled
   const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
@@ -175,7 +175,7 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: obstacleType,
-            y: snailY + 300 + Math.random() * 300, // Position ahead of the snail
+            y: snailY + 300 + Math.random() * 300, // Position ahead of the snail (downward on screen)
             passed: false
           })
         })
@@ -195,7 +195,7 @@ function GameWorld({ onGameOver }) {
         setCheckpoints(prev => {
           const newCheckpoint = {
             id: Date.now() + Math.random(),
-            y: snailY + 400, // Position ahead of the snail
+            y: snailY + 400, // Position ahead of the snail (downward on screen)
           }
           // Keep only recent checkpoints
           return [...prev.filter(cp => cp.y < 800), newCheckpoint]
@@ -226,7 +226,7 @@ function GameWorld({ onGameOver }) {
         })
         
         // Clean up obstacles that are too far behind
-        setObstacles(prev => prev.filter(obstacle => obstacle.y > snailY - 600))
+        setObstacles(prev => prev.filter(obstacle => obstacle.y > snailY - 800))
         
         // Check collisions
         checkCollisions()
@@ -358,7 +358,7 @@ function Snail({ position, snailY }) {
       className="snail" 
       style={{ 
         left: `${lanePositions[lane]}px`, // Position in the center of the lane
-        bottom: `${600 - snailY}px` // Position based on snail's Y position
+        top: `${snailY}px` // Position based on snail's Y position (moving upward)
       }}
     >
       🐌
