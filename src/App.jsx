@@ -108,29 +108,11 @@ function GameWorld({ onGameOver }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [gameOver])
   
-  // Move snail forward continuously
+  // Initialize snail position
   useEffect(() => {
-    const moveSnailInterval = setInterval(() => {
-      if (!gameOver) {
-        // Move snail forward automatically
-        setSnailY(prev => {
-          const newY = prev - speed
-          // When snail moves up, the distance increases
-          if (prev - newY > 0) {
-            setDistance(dist => dist + (prev - newY) / 10) // Scale the distance
-          }
-          return newY
-        })
-        
-        // Reset snail position when it gets too high (top of screen)
-        if (snailY < -100) {
-          setSnailY(700) // Reset to bottom
-        }
-      }
-    }, 16) // ~60fps
-    
-    return () => clearInterval(moveSnailInterval)
-  }, [speed, snailY, gameOver])
+    // Initialize snail at the bottom of the screen
+    setSnailY(100) // Start at the bottom
+  }, [])
   
   // Increase speed every 45 seconds
   useEffect(() => {
@@ -193,7 +175,7 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: obstacleType,
-            y: 800, // Start below the screen and move upward to approach the snail
+            y: Math.random() * 600 + 100, // Random position in the viewable area
             passed: false
           })
         })
@@ -213,7 +195,7 @@ function GameWorld({ onGameOver }) {
         setCheckpoints(prev => {
           const newCheckpoint = {
             id: Date.now() + Math.random(),
-            y: 800, // Start below the screen and move upward
+            y: Math.random() * 600 + 100, // Random position in the viewable area
           }
           // Keep only recent checkpoints
           return [...prev.filter(cp => cp.y < 800), newCheckpoint]
@@ -233,30 +215,14 @@ function GameWorld({ onGameOver }) {
       lastTimeRef.current = timestamp
       
       if (!gameOver) {
-        // Move checkpoints
-        setCheckpoints(prev => {
-          return prev.map(cp => ({
-            ...cp,
-            y: cp.y - speed * (deltaTime / 16) // Move checkpoints upward (opposite to snail)
-          })).filter(cp => cp.y > -100) // Remove off-screen checkpoints
-        })
-        
-        // Move obstacles
-        setObstacles(prev => {
-          const updatedObstacles = prev.map(obstacle => ({
-            ...obstacle,
-            y: obstacle.y - speed * (deltaTime / 16) // Move obstacles upward (opposite to snail)
-          })).filter(obstacle => obstacle.y > -100 && obstacle.y < 900) // Keep obstacles in view
-          
-          // Check for passed obstacles to increase score
-          updatedObstacles.forEach(obstacle => {
-            if (!obstacle.passed && obstacle.y < snailY) { // Snail's Y position (moving)
-              obstacle.passed = true
-              // Score is increased in the main component
-            }
-          })
-          
-          return updatedObstacles
+        // Move the snail forward
+        setSnailY(prev => {
+          const newY = prev + speed * (deltaTime / 16)
+          // When snail moves forward, the distance increases
+          if (newY - prev > 0) {
+            setDistance(dist => dist + (newY - prev) / 10) // Scale the distance
+          }
+          return newY
         })
         
         // Check collisions
