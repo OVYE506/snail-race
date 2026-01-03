@@ -54,7 +54,7 @@ function App() {
     )
   }
 
-  function GameWorld({ score, onGameOver, onScoreUpdate }) {
+  function GameWorld({ score, onGameOver }) {
     const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
     const [speed, setSpeed] = useState(2) // Initial speed
     const [snailY, setSnailY] = useState(100) // Snail's Y position (moving forward - starting at bottom)
@@ -108,7 +108,13 @@ function App() {
             const newY = prev + speed * (deltaTime / 16)
             // When snail moves forward, the distance increases
             if (newY - prev > 0) {
-              setDistance(dist => dist + (newY - prev) / 10) // Scale the distance
+              const distanceIncrease = (newY - prev) / 10
+              setDistance(prevDist => {
+                const newDistValue = prevDist + distanceIncrease
+                // Update score as well
+                setScore(newDistValue)
+                return newDistValue
+              })
             }
             return newY
           })
