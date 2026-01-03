@@ -116,8 +116,8 @@ function App() {
             return newY
           })
           
-          // Check if snail has moved too far (game ends)
-          if (snailY > 2000) { // After traveling a certain distance
+          // Check if snail has traveled far enough (game ends)
+          if (distance > 1000) { // After traveling 1000 meters
             setGameOver(true)
             onGameOver(distance)
           }
