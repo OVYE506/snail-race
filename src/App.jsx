@@ -14,7 +14,6 @@ function App() {
   const startGame = (newScore = 0) => {
     setGameState('playing')
     setScore(newScore)
-    setSaltCount(0)
   }
 
   const updateScore = (newScore) => {
@@ -29,7 +28,6 @@ function App() {
   const restartGame = () => {
     setGameState('menu')
     setScore(0)
-    setSaltCount(0)
   }
 
   return (
@@ -60,7 +58,7 @@ function MenuScreen({ onStart }) {
         <ul>
           <li>Click and drag the snail to move left/right</li>
           <li>Avoid sharp objects (💀) - they end the game!</li>
-          <li>Dodge salt particles (❄️) - they slow you down</li>
+          <li>Collect nitro boosters (🔵) to increase speed</li>
           <li>Don't fall off the road edges!</li>
           <li>Speed increases every 45 seconds</li>
         </ul>
@@ -84,7 +82,6 @@ function GameWorld({ onGameOver }) {
   const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [obstacles, setObstacles] = useState([])
   const [speed, setSpeed] = useState(2) // Initial speed
-  const [saltCount, setSaltCount] = useState(0) // Track salt encounters
   const [snailY, setSnailY] = useState(600) // Snail's Y position (moving forward)
   const [gameOver, setGameOver] = useState(false)
   const [distance, setDistance] = useState(0) // Track distance traveled
@@ -183,15 +180,13 @@ function GameWorld({ onGameOver }) {
         
         // Create obstacles in the unified pathway
         obstacleLanes.forEach(laneIndex => {
-          // Randomly select obstacle type (60% salt, 25% sharp, 15% nitro)
+          // Randomly select obstacle type (70% sharp, 30% nitro) - no salt
           const rand = Math.random()
           let obstacleType
-          if (rand < 0.15) {
+          if (rand < 0.30) {
             obstacleType = 'nitro'
-          } else if (rand < 0.40) {
-            obstacleType = 'sharp'
           } else {
-            obstacleType = 'salt'
+            obstacleType = 'sharp'
           }
           
           newObstacles.push({
@@ -314,30 +309,6 @@ function GameWorld({ onGameOver }) {
           
           // Remove the nitro obstacle after collection
           setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
-        } else {
-          // Salt particle encountered
-          setSaltCount(prev => {
-            const newCount = prev + 1;
-            console.log(`Salt count: ${newCount}`) // Debug log
-            if (newCount >= 2) {
-              // Game over after 2 salt encounters
-              setGameOver(true);
-              onGameOver(distance);
-              return newCount;
-            }
-            return newCount;
-          });
-          
-          // Slow down temporarily
-          setSpeed(prev => Math.max(1, prev - 1)); // Reduce speed, minimum of 1
-          
-          // Reset speed after delay
-          setTimeout(() => {
-            if (!gameOver) {
-              setSpeed(prev => prev + 1); // Restore speed
-              console.log('Speed restored after salt effect'); // Debug log
-            }
-          }, 2000); // Restore speed after 2 seconds
         }
       }
     });
@@ -437,7 +408,7 @@ function Obstacle({ obstacle }) {
         top: `${obstacle.y}px`
       }}
     >
-      {obstacle.type === 'sharp' ? '💀' : obstacle.type === 'nitro' ? '🔵' : '❄️'}
+      {obstacle.type === 'sharp' ? '💀' : '🔵'}
     </div>
   )
 }
