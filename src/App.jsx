@@ -116,6 +116,12 @@ function App() {
             return newY
           })
           
+          // Check if snail has moved too far (game ends)
+          if (snailY > 2000) { // After traveling a certain distance
+            setGameOver(true)
+            onGameOver(distance)
+          }
+          
           animationFrameRef.current = requestAnimationFrame(updateGame)
         }
       }
@@ -127,7 +133,7 @@ function App() {
           cancelAnimationFrame(animationFrameRef.current)
         }
       }
-    }, [speed, snailY, gameOver])
+    }, [speed, snailY, gameOver, distance, onGameOver])
     
     const handleSnailDrag = (e) => {
       if (gameWorldRef.current && !gameOver) {
