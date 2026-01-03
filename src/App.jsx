@@ -175,7 +175,7 @@ function GameWorld({ onGameOver }) {
             id: Date.now() + Math.random(),
             lane: laneIndex,
             type: obstacleType,
-            y: snailY + 300 + Math.random() * 300, // Position ahead of the snail (downward on screen)
+            y: snailY + 400 + Math.random() * 400, // Position well ahead of the snail (downward on screen)
             passed: false
           })
         })
@@ -195,7 +195,7 @@ function GameWorld({ onGameOver }) {
         setCheckpoints(prev => {
           const newCheckpoint = {
             id: Date.now() + Math.random(),
-            y: snailY + 400, // Position ahead of the snail (downward on screen)
+            y: snailY + 600, // Position further ahead of the snail (downward on screen)
           }
           // Keep only recent checkpoints
           return [...prev.filter(cp => cp.y < 800), newCheckpoint]
