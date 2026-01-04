@@ -216,6 +216,17 @@
   animation: spin 3s linear infinite;
 }
 
+.nitro {
+  position: absolute;
+  font-size: 2rem;
+  transform: translateX(-50%);
+  z-index: 4;
+  user-select: none;
+  text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+  animation: nitroFloat 2s infinite ease-in-out;
+  color: #007bff;
+}
+
 .obstacle.nitro {
   color: #007bff;
   text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);

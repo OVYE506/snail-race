@@ -60,6 +60,8 @@ function App() {
     const [gameOver, setGameOver] = useState(false)
     const [distance, setDistance] = useState(0) // Track distance traveled
     const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
+    const [obstacles, setObstacles] = useState([]) // Store obstacles
+    const [nitroBoosters, setNitroBoosters] = useState([]) // Store nitro boosters
     const gameWorldRef = useRef(null)
     const animationFrameRef = useRef(null)
     const lastTimeRef = useRef(null)
@@ -93,6 +95,56 @@ function App() {
       return () => clearInterval(roadInterval)
     }, [gameOver, roadOffset])
     
+    // Generate obstacles
+    useEffect(() => {
+      if (gameOver) return;
+      
+      const obstacleInterval = setInterval(() => {
+        if (!gameOver) {
+          // Randomly decide to generate an obstacle (30% chance)
+          if (Math.random() < 0.3) {
+            const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
+            const lanePositions = [50, 150, 250];
+            const newObstacle = {
+              id: Date.now() + Math.random(),
+              lane,
+              position: lanePositions[lane],
+              y: -50, // Start above the screen
+              type: 'sharp' // sharp obstacle
+            };
+            setObstacles(prev => [...prev, newObstacle]);
+          }
+        }
+      }, 2000); // Generate every 2 seconds
+      
+      return () => clearInterval(obstacleInterval);
+    }, [gameOver])
+    
+    // Generate nitro boosters
+    useEffect(() => {
+      if (gameOver) return;
+      
+      const nitroInterval = setInterval(() => {
+        if (!gameOver) {
+          // Randomly decide to generate a nitro booster (20% chance)
+          if (Math.random() < 0.2) {
+            const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
+            const lanePositions = [50, 150, 250];
+            const newNitro = {
+              id: Date.now() + Math.random(),
+              lane,
+              position: lanePositions[lane],
+              y: -50, // Start above the screen
+              type: 'nitro' // nitro booster
+            };
+            setNitroBoosters(prev => [...prev, newNitro]);
+          }
+        }
+      }, 3000); // Generate every 3 seconds
+      
+      return () => clearInterval(nitroInterval);
+    }, [gameOver])
+    
     // Game loop - just move the snail forward
     useEffect(() => {
       const updateGame = (timestamp) => {
@@ -123,6 +175,70 @@ function App() {
             return newY;
           });
           
+          // Move obstacles and nitro boosters
+          setObstacles(prev => {
+            return prev
+              .map(obstacle => ({
+                ...obstacle,
+                y: obstacle.y + speed * (deltaTime / 16) // Move with same speed as snail
+              }))
+              .filter(obstacle => obstacle.y < 800); // Remove if off screen
+          });
+          
+          setNitroBoosters(prev => {
+            return prev
+              .map(nitro => ({
+                ...nitro,
+                y: nitro.y + speed * (deltaTime / 16) // Move with same speed as snail
+              }))
+              .filter(nitro => nitro.y < 800); // Remove if off screen
+          });
+          
+          // Check for collisions with obstacles
+          const snailLane = Math.floor(snailPosition / 100);
+          const snailLanePositions = [50, 150, 250];
+          const snailLanePos = snailLanePositions[snailLane];
+          
+          // Check for collision with sharp obstacles
+          const obstacleCollision = obstacles.some(obstacle => {
+            // Check if in same lane and close vertically
+            if (obstacle.lane === snailLane && 
+                Math.abs(obstacle.y - snailY) < 50 &&
+                Math.abs(obstacle.position - snailLanePos) < 40) {
+              return true;
+            }
+            return false;
+          });
+          
+          if (obstacleCollision && !gameOver) {
+            setGameOver(true);
+            onGameOver(distance);
+          }
+          
+          // Check for collision with nitro boosters
+          const nitroCollision = nitroBoosters.some((nitro, index) => {
+            // Check if in same lane and close vertically
+            if (nitro.lane === snailLane && 
+                Math.abs(nitro.y - snailY) < 50 &&
+                Math.abs(nitro.position - snailLanePos) < 40) {
+              return true;
+            }
+            return false;
+          });
+          
+          if (nitroCollision && !gameOver) {
+            // Remove the collected nitro booster
+            setNitroBoosters(prev => prev.filter((_, index) => {
+              const nitro = prev[index];
+              return !(nitro.lane === snailLane && 
+                      Math.abs(nitro.y - snailY) < 50 &&
+                      Math.abs(nitro.position - snailLanePos) < 40);
+            }));
+            
+            // Boost the speed
+            setSpeed(prevSpeed => prevSpeed + 1.0);
+          }
+          
           animationFrameRef.current = requestAnimationFrame(updateGame);
         }
       }
@@ -134,7 +250,7 @@ function App() {
           cancelAnimationFrame(animationFrameRef.current);
         }
       };
-    }, [speed, gameOver, onGameOver])
+    }, [speed, snailY, snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
     
     const handleSnailDrag = (e) => {
       if (gameWorldRef.current && !gameOver) {
@@ -166,6 +282,30 @@ function App() {
         <div className="road-container" style={{ transform: `translateX(${roadOffset}px)` }}>
           <Road />
           <Snail position={snailPosition} snailY={snailY} />
+          {obstacles.map(obstacle => (
+            <div 
+              key={`obstacle-${obstacle.id}`}
+              className="obstacle sharp"
+              style={{ 
+                left: `${obstacle.position}px`, 
+                top: `${obstacle.y}px`
+              }}
+            >
+              ⚰️
+            </div>
+          ))}
+          {nitroBoosters.map(nitro => (
+            <div 
+              key={`nitro-${nitro.id}`}
+              className="nitro"
+              style={{ 
+                left: `${nitro.position}px`, 
+                top: `${nitro.y}px`
+              }}
+            >
+              🚗💨
+            </div>
+          ))}
         </div>
       </div>
     )
