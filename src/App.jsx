@@ -14,7 +14,6 @@ function App() {
         <GameWorld 
           score={score} 
           onGameOver={(finalScore) => endGame(finalScore)}
-          onScoreUpdate={setScore}
         />
       )}
       {gameState === 'gameOver' && (
