@@ -216,7 +216,7 @@ function App() {
           }
           
           // Check for collision with nitro boosters
-          const nitroCollision = nitroBoosters.some((nitro, index) => {
+          const nitroCollision = nitroBoosters.some(nitro => {
             // Check if in same lane and close vertically
             if (nitro.lane === snailLane && 
                 Math.abs(nitro.y - snailY) < 50 &&
