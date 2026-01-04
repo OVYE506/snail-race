@@ -228,8 +228,7 @@ function App() {
           
           if (nitroCollision && !gameOver) {
             // Remove the collected nitro booster
-            setNitroBoosters(prev => prev.filter((_, index) => {
-              const nitro = prev[index];
+            setNitroBoosters(prev => prev.filter(nitro => {
               return !(nitro.lane === snailLane && 
                       Math.abs(nitro.y - snailY) < 50 &&
                       Math.abs(nitro.position - snailLanePos) < 40);
