@@ -322,15 +322,11 @@ function App() {
   }
 
   function Snail({ position, snailY }) {
-    // Calculate lane position (0, 1, 2) from pixel position
-    const lane = Math.floor(position / 100)
-    const lanePositions = [50, 150, 250] // Center positions of each lane
-    
     return (
       <div 
         className="snail" 
         style={{ 
-          left: `${lanePositions[lane]}px`, // Position in the center of the lane
+          left: `${position}px`, // Position based on passed position
           top: `${snailY}px` // Position based on snail's Y position (moving upward)
         }}
       >
