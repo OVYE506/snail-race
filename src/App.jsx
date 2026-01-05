@@ -254,16 +254,14 @@ function App() {
     }, [speed, snailY, snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
     
     const handleSnailDrag = (clientX) => {
-      if (!gameWorldRef.current || gameOver) return
+      if (!roadRef.current || gameOver) return
       
-      const gameRect = gameWorldRef.current.getBoundingClientRect()
-      const roadWidth = 300; // Fixed road width as per CSS
-      const roadLeft = gameRect.left + (gameRect.width - roadWidth) / 2
-      const x = clientX - roadLeft
+      const rect = roadRef.current.getBoundingClientRect()
+      const x = clientX - rect.left
       
-      if (x < 0 || x > roadWidth) return
+      if (x < 0 || x > rect.width) return
       
-      const laneWidth = roadWidth / 3
+      const laneWidth = rect.width / 3
       let lane = Math.floor(x / laneWidth)
       
       // Ensure lane is within bounds
