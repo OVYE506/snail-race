@@ -262,7 +262,10 @@ function App() {
       if (x < 0 || x > rect.width) return
       
       const laneWidth = rect.width / 3
-      const lane = Math.floor(x / laneWidth)
+      let lane = Math.floor(x / laneWidth)
+      
+      // Ensure lane is within bounds
+      lane = Math.min(2, Math.max(0, lane))
       
       const laneCenters = [
         laneWidth / 2,
