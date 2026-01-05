@@ -197,7 +197,7 @@ function App() {
           // Check for collisions with obstacles
           const snailLane = Math.floor(snailPosition / 100);
           const snailLanePositions = [50, 150, 250];
-          const snailLanePos = snailLanePositions[snailLane];
+          const snailLanePos = snailPosition; // Use actual snail position, not lane center
           
           // Check for collision with sharp obstacles
           const obstacleCollision = obstacles.some(obstacle => {
