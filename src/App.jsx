@@ -63,8 +63,10 @@ function App() {
     const [obstacles, setObstacles] = useState([]) // Store obstacles
     const [nitroBoosters, setNitroBoosters] = useState([]) // Store nitro boosters
     const gameWorldRef = useRef(null)
+    const roadRef = useRef(null)
     const animationFrameRef = useRef(null)
     const lastTimeRef = useRef(null)
+    const isDraggingRef = useRef(false)
     
     // Increase speed over time
     useEffect(() => {
@@ -251,36 +253,47 @@ function App() {
       };
     }, [speed, snailY, snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
     
-    const handleSnailDrag = (e) => {
-      if (gameWorldRef.current && !gameOver) {
-        const rect = gameWorldRef.current.getBoundingClientRect()
-        const roadLeft = rect.left + (rect.width - 300) / 2 // Road is 300px wide, centered
-        const rawPosition = e.clientX - roadLeft
-        
-        // Calculate which lane the user clicked on (0, 1, or 2)
-        const lane = Math.min(2, Math.max(0, Math.floor(rawPosition / 100)))
-        
-        // Keep snail within road bounds and snap to lane center
-        if (rawPosition >= 0 && rawPosition <= 300) {
-          const lanePositions = [50, 150, 250] // Center positions of each lane
-          setSnailPosition(lanePositions[lane])
-        }
-      }
+    const handleSnailDrag = (clientX) => {
+      if (!roadRef.current || gameOver) return
+      
+      const rect = roadRef.current.getBoundingClientRect()
+      const x = clientX - rect.left
+      
+      if (x < 0 || x > rect.width) return
+      
+      const laneWidth = rect.width / 3
+      const lane = Math.floor(x / laneWidth)
+      
+      const laneCenters = [
+        laneWidth / 2,
+        laneWidth * 1.5,
+        laneWidth * 2.5
+      ]
+      
+      setSnailPosition(laneCenters[lane])
     }
     
     return (
-      <div 
-        className="game-world" 
+      <div
+        className="game-world"
         ref={gameWorldRef}
-        onMouseMove={(e) => handleSnailDrag(e)}
+        onMouseDown={() => (isDraggingRef.current = true)}
+        onMouseUp={() => (isDraggingRef.current = false)}
+        onMouseLeave={() => (isDraggingRef.current = false)}
+        onMouseMove={(e) => {
+          if (isDraggingRef.current) {
+            handleSnailDrag(e.clientX)
+          }
+        }}
+        onTouchStart={() => (isDraggingRef.current = true)}
+        onTouchEnd={() => (isDraggingRef.current = false)}
         onTouchMove={(e) => {
-          e.preventDefault()
-          if (e.touches && e.touches[0]) {
-            handleSnailDrag(e.touches[0])
+          if (e.touches[0]) {
+            handleSnailDrag(e.touches[0].clientX)
           }
         }}
       >
-        <div className="road-container" style={{ transform: `translateX(${roadOffset}px)` }}>
+        <div className="road-container" ref={roadRef} style={{ transform: `translateX(${roadOffset}px)` }}>
           <Road />
           <Snail position={snailPosition} snailY={snailY} />
           {obstacles.map(obstacle => (
