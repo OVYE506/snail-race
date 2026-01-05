@@ -275,7 +275,9 @@ function App() {
         onMouseMove={(e) => handleSnailDrag(e)}
         onTouchMove={(e) => {
           e.preventDefault()
-          handleSnailDrag(e.touches[0])
+          if (e.touches && e.touches[0]) {
+            handleSnailDrag(e.touches[0])
+          }
         }}
       >
         <div className="road-container" style={{ transform: `translateX(${roadOffset}px)` }}>
