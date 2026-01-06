@@ -1,6 +1,9 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/^/(.*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
@@ -20,7 +23,6 @@
         }
       ]
     }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"}
+  ]
+}
 
