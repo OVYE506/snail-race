@@ -225,7 +225,15 @@ function App() {
           // Check for collision with sharp obstacles
           const obstacleCollision = obstacles.some(obstacle => {
             // Check if close vertically and horizontally (using actual positions)
-            if (Math.abs(obstacle.y - snailY) < 50 &&
+            // Calculate which lane the obstacle is in based on its position
+            const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+            const actualLaneWidth = rect ? rect.width / 3 : 100;
+            let obstacleLane = rect ? Math.floor(obstacle.position / actualLaneWidth) : Math.floor(obstacle.position / 100);
+            obstacleLane = Math.min(2, Math.max(0, obstacleLane));
+            
+            // Check if the snail and obstacle are in the same lane and close vertically
+            if (obstacleLane === snailLane &&
+                Math.abs(obstacle.y - snailY) < 50 &&
                 Math.abs(obstacle.position - snailLanePos) < 40) {
               return true;
             }
@@ -240,7 +248,15 @@ function App() {
           // Check for collision with nitro boosters
           const nitroCollision = nitroBoosters.some(nitro => {
             // Check if close vertically and horizontally (using actual positions)
-            if (Math.abs(nitro.y - snailY) < 50 &&
+            // Calculate which lane the nitro is in based on its position
+            const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+            const actualLaneWidth = rect ? rect.width / 3 : 100;
+            let nitroLane = rect ? Math.floor(nitro.position / actualLaneWidth) : Math.floor(nitro.position / 100);
+            nitroLane = Math.min(2, Math.max(0, nitroLane));
+            
+            // Check if the snail and nitro are in the same lane and close vertically
+            if (nitroLane === snailLane &&
+                Math.abs(nitro.y - snailY) < 50 &&
                 Math.abs(nitro.position - snailLanePos) < 40) {
               return true;
             }
