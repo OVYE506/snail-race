@@ -106,7 +106,14 @@ function App() {
           // Randomly decide to generate an obstacle (30% chance)
           if (Math.random() < 0.3) {
             const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
-            const lanePositions = [50, 150, 250];
+            // Calculate lane position based on actual road width
+            const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+            const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
+            const lanePositions = [
+              actualLaneWidth / 2,           // Left lane center
+              actualLaneWidth * 1.5,       // Middle lane center
+              actualLaneWidth * 2.5        // Right lane center
+            ];
             const newObstacle = {
               id: Date.now() + Math.random(),
               lane,
@@ -120,7 +127,7 @@ function App() {
       }, 2000); // Generate every 2 seconds
       
       return () => clearInterval(obstacleInterval);
-    }, [gameOver])
+    }, [gameOver, roadRef])
     
     // Generate nitro boosters
     useEffect(() => {
@@ -131,7 +138,14 @@ function App() {
           // Randomly decide to generate a nitro booster (20% chance)
           if (Math.random() < 0.2) {
             const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
-            const lanePositions = [50, 150, 250];
+            // Calculate lane position based on actual road width
+            const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+            const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
+            const lanePositions = [
+              actualLaneWidth / 2,           // Left lane center
+              actualLaneWidth * 1.5,       // Middle lane center
+              actualLaneWidth * 2.5        // Right lane center
+            ];
             const newNitro = {
               id: Date.now() + Math.random(),
               lane,
@@ -145,7 +159,7 @@ function App() {
       }, 3000); // Generate every 3 seconds
       
       return () => clearInterval(nitroInterval);
-    }, [gameOver])
+    }, [gameOver, roadRef])
     
     // Game loop - just move the snail forward
     useEffect(() => {
