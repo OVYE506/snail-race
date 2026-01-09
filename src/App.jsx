@@ -170,6 +170,12 @@ function App() {
                 if (newDist > 1000) { // After traveling 1000 meters
                   setGameOver(true);
                   onGameOver(newDist);
+                  
+                  // Clear nitro timeout when game ends
+                  if (nitroTimeoutRef.current) {
+                    clearTimeout(nitroTimeoutRef.current);
+                    setIsNitroActive(false);
+                  }
                 }
                 return newDist;
               });
@@ -217,6 +223,12 @@ function App() {
           if (obstacleCollision && !gameOver) {
             setGameOver(true);
             onGameOver(distance);
+            
+            // Clear nitro timeout when game ends
+            if (nitroTimeoutRef.current) {
+              clearTimeout(nitroTimeoutRef.current);
+              setIsNitroActive(false);
+            }
           }
           
           // Check for collision with nitro boosters
