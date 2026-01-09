@@ -62,6 +62,8 @@ function App() {
     const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
     const [obstacles, setObstacles] = useState([]) // Store obstacles
     const [nitroBoosters, setNitroBoosters] = useState([]) // Store nitro boosters
+    const [isNitroActive, setIsNitroActive] = useState(false) // Track if nitro boost is active
+    const nitroTimeoutRef = useRef(null) // Ref to track nitro timeout
     const gameWorldRef = useRef(null)
     const roadRef = useRef(null)
     const animationFrameRef = useRef(null)
@@ -236,8 +238,22 @@ function App() {
                       Math.abs(nitro.position - snailLanePos) < 40);
             }));
             
-            // Boost the speed
-            setSpeed(prevSpeed => prevSpeed + 1.0);
+            // Boost the speed temporarily
+            if (!isNitroActive) {
+              setSpeed(prevSpeed => prevSpeed + 2.0); // Temporary boost
+              setIsNitroActive(true);
+              
+              // Clear any existing timeout
+              if (nitroTimeoutRef.current) {
+                clearTimeout(nitroTimeoutRef.current);
+              }
+              
+              // Set timeout to return to normal speed after 10 seconds
+              nitroTimeoutRef.current = setTimeout(() => {
+                setSpeed(prevSpeed => prevSpeed - 2.0);
+                setIsNitroActive(false);
+              }, 10000); // 10 seconds
+            }
           }
           
           animationFrameRef.current = requestAnimationFrame(updateGame);
@@ -249,6 +265,10 @@ function App() {
       return () => {
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
+        }
+        // Clear nitro timeout on cleanup
+        if (nitroTimeoutRef.current) {
+          clearTimeout(nitroTimeoutRef.current);
         }
       };
     }, [speed, snailY, snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
