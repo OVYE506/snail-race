@@ -284,7 +284,9 @@ function App() {
     const handleSnailDrag = (clientX) => {
       if (!roadRef.current || gameOver) return
       
-      const rect = roadRef.current.getBoundingClientRect()
+      const rect = roadRef.current?.getBoundingClientRect()
+      if (!rect) return
+      
       const x = clientX - rect.left
       
       if (x < 0 || x > rect.width) return
