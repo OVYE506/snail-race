@@ -213,7 +213,7 @@ function App() {
           // Check for collisions with obstacles
           // Calculate which lane the snail is in based on its position
           // Use the same calculation as in handleSnailDrag for consistency
-          const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+          const rect = roadRef.current?.getBoundingClientRect();
           const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
           let snailLane = rect ? Math.floor(snailPosition / actualLaneWidth) : Math.floor(snailPosition / 100);
           
