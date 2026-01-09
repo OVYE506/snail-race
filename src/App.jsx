@@ -197,8 +197,13 @@ function App() {
           });
           
           // Check for collisions with obstacles
-          const snailLane = Math.floor(snailPosition / 100);
-          const snailLanePositions = [50, 150, 250];
+          // Calculate which lane the snail is in based on its position
+          const laneWidth = 100; // Fixed lane width based on initial positioning
+          let snailLane;
+          if (snailPosition < 100) snailLane = 0;      // Left lane
+          else if (snailPosition < 200) snailLane = 1; // Middle lane
+          else snailLane = 2;                         // Right lane
+          
           const snailLanePos = snailPosition; // Use actual snail position, not lane center
           
           // Check for collision with sharp obstacles
