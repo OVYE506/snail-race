@@ -224,9 +224,8 @@ function App() {
           
           // Check for collision with sharp obstacles
           const obstacleCollision = obstacles.some(obstacle => {
-            // Check if in same lane and close vertically
-            if (obstacle.lane === snailLane && 
-                Math.abs(obstacle.y - snailY) < 50 &&
+            // Check if close vertically and horizontally (using actual positions)
+            if (Math.abs(obstacle.y - snailY) < 50 &&
                 Math.abs(obstacle.position - snailLanePos) < 40) {
               return true;
             }
@@ -240,9 +239,8 @@ function App() {
           
           // Check for collision with nitro boosters
           const nitroCollision = nitroBoosters.some(nitro => {
-            // Check if in same lane and close vertically
-            if (nitro.lane === snailLane && 
-                Math.abs(nitro.y - snailY) < 50 &&
+            // Check if close vertically and horizontally (using actual positions)
+            if (Math.abs(nitro.y - snailY) < 50 &&
                 Math.abs(nitro.position - snailLanePos) < 40) {
               return true;
             }
