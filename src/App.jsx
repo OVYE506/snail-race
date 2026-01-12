@@ -107,7 +107,7 @@ function App() {
           if (Math.random() < 0.3) {
             const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
             // Calculate lane position based on actual road width
-            const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+            const rect = roadRef.current?.getBoundingClientRect();
             const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
             const lanePositions = [
               actualLaneWidth / 2,           // Left lane center
@@ -139,7 +139,7 @@ function App() {
           if (Math.random() < 0.2) {
             const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
             // Calculate lane position based on actual road width
-            const rect = roadRef.current ? roadRef.current.getBoundingClientRect() : null;
+            const rect = roadRef.current?.getBoundingClientRect();
             const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
             const lanePositions = [
               actualLaneWidth / 2,           // Left lane center
