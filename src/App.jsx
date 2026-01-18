@@ -107,17 +107,20 @@ function GameWorld({ score, onGameOver }) {
     const roadInterval = setInterval(() => {
       if (!gameOver) {
         // Create a gentle curve in the road
-        setRoadOffset(prev => prev + (Math.random() - 0.5) * 2) // Small random movement
-        
-        // Keep road offset within bounds
-        if (roadOffset > 20 || roadOffset < -20) {
-          setRoadOffset(prev => prev * 0.9) // Gradually return to center
-        }
+        setRoadOffset(prev => {
+          const newValue = prev + (Math.random() - 0.5) * 2; // Small random movement
+          
+          // Keep road offset within bounds
+          if (newValue > 20 || newValue < -20) {
+            return newValue * 0.9; // Gradually return to center
+          }
+          return newValue;
+        });
       }
     }, 100) // Update frequently for smooth curves
     
     return () => clearInterval(roadInterval)
-  }, [gameOver, roadOffset])
+  }, [gameOver])
   
   // Generate obstacles
   useEffect(() => {
@@ -196,16 +199,14 @@ function GameWorld({ score, onGameOver }) {
       // forward movement
       const newSnailY = snailYRef.current + speedRef.current * (delta / 16)
       snailYRef.current = newSnailY
-      distanceRef.current += speedRef.current * 0.1
+      // Update distance - increment based on movement
+      distanceRef.current += (speedRef.current * (delta / 16)) / 10;
       
       // light UI update only
       setSnailY(newSnailY)
       setScore(distanceRef.current)
       
-      // gradual speed increase
-      speedRef.current += 0.002
-      
-      // end game
+      // end game - when snail moves forward far enough
       if (distanceRef.current >= 1000) {
         setGameOver(true)
         onGameOver(distanceRef.current)
