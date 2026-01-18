@@ -197,16 +197,17 @@ function GameWorld({ score, onGameOver }) {
       lastTime = time
       
       // forward movement
-      const newSnailY = snailYRef.current + speedRef.current * (delta / 16)
-      snailYRef.current = newSnailY
-      // Update distance - increment based on movement
-      distanceRef.current += (speedRef.current * (delta / 16)) / 10;
+      snailYRef.current += speedRef.current * (delta / 16)
+      distanceRef.current += speedRef.current * 0.1
       
       // light UI update only
-      setSnailY(newSnailY)
+      setSnailY(snailYRef.current)
       setScore(distanceRef.current)
       
-      // end game - when snail moves forward far enough
+      // gradual speed increase
+      speedRef.current += 0.002
+      
+      // end game
       if (distanceRef.current >= 1000) {
         setGameOver(true)
         onGameOver(distanceRef.current)
