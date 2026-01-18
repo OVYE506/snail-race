@@ -206,6 +206,11 @@ function GameWorld({ score, onGameOver }) {
       setSnailY(snailYRef.current)
       setScore(distanceRef.current)
       
+      // Check again if game is over after state update
+      if (gameOver) {
+        return;
+      }
+      
       animationFrameRef.current = requestAnimationFrame(loop)
     }
     
