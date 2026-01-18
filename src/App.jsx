@@ -189,10 +189,10 @@ function GameWorld({ score, onGameOver }) {
   // Game loop - just move the snail forward
   useEffect(() => {
     let lastTime = 0
+    let isActive = true; // Flag to track if the game loop should continue
     
     const loop = (time) => {
-      if (gameOver) {
-        // Stop the animation frame when game is over
+      if (!isActive || gameOver) {
         return;
       }
       
@@ -211,7 +211,12 @@ function GameWorld({ score, onGameOver }) {
     
     animationFrameRef.current = requestAnimationFrame(loop)
     
-    return () => cancelAnimationFrame(animationFrameRef.current)
+    return () => {
+      isActive = false; // Set flag to stop the loop
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, [gameOver])
   
   // Helper function to update game state
