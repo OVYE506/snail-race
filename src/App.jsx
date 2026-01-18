@@ -191,7 +191,10 @@ function GameWorld({ score, onGameOver }) {
     let lastTime = 0
     
     const loop = (time) => {
-      if (gameOver) return
+      if (gameOver) {
+        // Stop the animation frame when game is over
+        return;
+      }
       
       const delta = time - lastTime
       lastTime = time
