@@ -55,13 +55,14 @@ function App() {
 
   function GameWorld({ score, onGameOver }) {
     const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
-    const [speed, setSpeed] = useState(2) // Initial speed
-    const [snailY, setSnailY] = useState(100) // Snail's Y position (moving forward - starting at bottom)
     const [gameOver, setGameOver] = useState(false)
-    const [distance, setDistance] = useState(0) // Track distance traveled
     const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
     const [obstacles, setObstacles] = useState([]) // Store obstacles
     const [nitroBoosters, setNitroBoosters] = useState([]) // Store nitro boosters
+    
+    const speedRef = useRef(2)
+    const snailYRef = useRef(100)
+    const distanceRef = useRef(0)
     const gameWorldRef = useRef(null)
     const roadRef = useRef(null)
     const animationFrameRef = useRef(null)
@@ -73,7 +74,7 @@ function App() {
       const speedInterval = setInterval(() => {
         if (!gameOver) {
           // Increase speed gradually
-          setSpeed(prev => prev + 0.1)
+          speedRef.current += 0.1
         }
       }, 1000) // Increase speed every second
       
@@ -171,32 +172,28 @@ function App() {
         
         if (!gameOver) {
           // Move the snail forward
-          setSnailY(prev => {
-            const newY = prev + speed * (deltaTime / 16)
-            // When snail moves forward, the distance increases
-            if (newY - prev > 0) {
-              const distanceIncrease = (newY - prev) / 10
-              setDistance(prevDist => {
-                const newDist = prevDist + distanceIncrease;
-                // Check if distance threshold is reached
-                if (newDist > 1000) { // After traveling 1000 meters
-                  setGameOver(true);
-                  onGameOver(newDist);
-                }
-                return newDist;
-              });
-              // Update score to match distance
-              setScore(prevDist => prevDist + distanceIncrease);
+          const newY = snailYRef.current + speedRef.current * (deltaTime / 16)
+          // When snail moves forward, the distance increases
+          if (newY - snailYRef.current > 0) {
+            const distanceIncrease = (newY - snailYRef.current) / 10
+            const newDist = distanceRef.current + distanceIncrease;
+            // Check if distance threshold is reached
+            if (newDist > 1000) { // After traveling 1000 meters
+              setGameOver(true);
+              onGameOver(newDist);
             }
-            return newY;
-          });
+            distanceRef.current = newDist;
+            // Update score to match distance
+            setScore(prevDist => prevDist + distanceIncrease);
+          }
+          snailYRef.current = newY;
           
           // Move obstacles and nitro boosters
           setObstacles(prev => {
             return prev
               .map(obstacle => ({
                 ...obstacle,
-                y: obstacle.y + speed * (deltaTime / 16) // Move with same speed as snail
+                y: obstacle.y + speedRef.current * (deltaTime / 16) // Move with same speed as snail
               }))
               .filter(obstacle => obstacle.y < 800); // Remove if off screen
           });
@@ -205,7 +202,7 @@ function App() {
             return prev
               .map(nitro => ({
                 ...nitro,
-                y: nitro.y + speed * (deltaTime / 16) // Move with same speed as snail
+                y: nitro.y + speedRef.current * (deltaTime / 16) // Move with same speed as snail
               }))
               .filter(nitro => nitro.y < 800); // Remove if off screen
           });
@@ -229,7 +226,7 @@ function App() {
             // Since obstacle.position is calculated based on the same method as lane centers,
             // we can use the original lane assignment
             if (obstacle.lane === snailLane &&
-                Math.abs(obstacle.y - snailY) < 50 &&
+                Math.abs(obstacle.y - snailYRef.current) < 50 &&
                 Math.abs(obstacle.position - snailLanePos) < 40) {
               return true;
             }
@@ -238,7 +235,7 @@ function App() {
           
           if (obstacleCollision && !gameOver) {
             setGameOver(true);
-            onGameOver(distance);
+            onGameOver(distanceRef.current);
           }
           
           // Check for collision with nitro boosters
@@ -248,7 +245,7 @@ function App() {
             // Since nitro.position is calculated based on the same method as lane centers,
             // we can use the original lane assignment
             if (nitro.lane === snailLane &&
-                Math.abs(nitro.y - snailY) < 50 &&
+                Math.abs(nitro.y - snailYRef.current) < 50 &&
                 Math.abs(nitro.position - snailLanePos) < 40) {
               return true;
             }
@@ -264,7 +261,7 @@ function App() {
             }));
             
             // Boost the speed
-            setSpeed(prevSpeed => prevSpeed + 1.0);
+            speedRef.current += 1.0;
           }
           
           animationFrameRef.current = requestAnimationFrame(updateGame);
@@ -279,7 +276,7 @@ function App() {
         }
         
       };
-    }, [speed, snailY, snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
+    }, [snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
     
     const handleSnailDrag = (clientX) => {
       if (!roadRef.current || gameOver) return
@@ -328,7 +325,7 @@ function App() {
       >
         <div className="road-container" ref={roadRef} style={{ transform: `translateX(${roadOffset}px)` }}>
           <Road />
-          <Snail position={snailPosition} snailY={snailY} />
+          <Snail position={snailPosition} snailY={snailYRef.current} />
           {obstacles.map(obstacle => (
             <div 
               key={`obstacle-${obstacle.id}`}
