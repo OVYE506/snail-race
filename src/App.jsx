@@ -55,6 +55,7 @@ function App() {
 
   function GameWorld({ score, onGameOver }) {
     const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
+    const [snailY, setSnailY] = useState(100)
     const [gameOver, setGameOver] = useState(false)
     const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
     const [obstacles, setObstacles] = useState([]) // Store obstacles
@@ -173,11 +174,12 @@ function App() {
         lastTime = time
         
         // forward movement
-        snailYRef.current += speedRef.current * (delta / 16)
+        const newSnailY = snailYRef.current + speedRef.current * (delta / 16)
+        snailYRef.current = newSnailY
         distanceRef.current += speedRef.current * 0.1
         
         // light UI update only
-        setSnailY(snailYRef.current)
+        setSnailY(newSnailY)
         setScore(distanceRef.current)
         
         // gradual speed increase
@@ -228,7 +230,7 @@ function App() {
           // Since obstacle.position is calculated based on the same method as lane centers,
           // we can use the original lane assignment
           if (obstacle.lane === snailLane &&
-              Math.abs(obstacle.y - snailYRef.current) < 50 &&
+              Math.abs(obstacle.y - snailY) < 50 &&
               Math.abs(obstacle.position - snailLanePos) < 40) {
             return true;
           }
@@ -247,7 +249,7 @@ function App() {
           // Since nitro.position is calculated based on the same method as lane centers,
           // we can use the original lane assignment
           if (nitro.lane === snailLane &&
-              Math.abs(nitro.y - snailYRef.current) < 50 &&
+              Math.abs(nitro.y - snailY) < 50 &&
               Math.abs(nitro.position - snailLanePos) < 40) {
             return true;
           }
@@ -258,10 +260,10 @@ function App() {
           // Remove the collected nitro booster
           setNitroBoosters(prev => prev.filter(nitro => {
             return !(nitro.lane === snailLane && 
-                    Math.abs(nitro.y - snailYRef.current) < 50 &&
+                    Math.abs(nitro.y - snailY) < 50 &&
                     Math.abs(nitro.position - snailLanePos) < 40);
           }));
-          
+                    
           // Boost the speed
           speedRef.current += 1.0;
         }
@@ -321,7 +323,7 @@ function App() {
       >
         <div className="road-container" ref={roadRef} style={{ transform: `translateX(${roadOffset}px)` }}>
           <Road />
-          <Snail position={snailPosition} snailY={snailYRef.current} />
+          <Snail position={snailPosition} snailY={snailY} />
           {obstacles.map(obstacle => (
             <div 
               key={`obstacle-${obstacle.id}`}
