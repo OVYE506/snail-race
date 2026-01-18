@@ -226,6 +226,9 @@ function GameWorld({ score, onGameOver }) {
   
   // Helper function to update game state
   const updateGameState = (delta) => {
+    // Don't update state if game is over
+    if (gameOver) return;
+    
     // forward movement
     snailYRef.current += speedRef.current * (delta / 16)
     distanceRef.current += speedRef.current * 0.1
@@ -288,32 +291,36 @@ function GameWorld({ score, onGameOver }) {
     if (obstacleCollision && !gameOver) {
       setGameOver(true);
       onGameOver(distanceRef.current);
+      return;
     }
     
     // Check for collision with nitro boosters
-    const nitroCollision = nitroBoosters.some(nitro => {
-      // Check if close vertically and horizontally (using actual positions)
-      // Check if the snail and nitro are in the same lane and close vertically
-      // Since nitro.position is calculated based on the same method as lane centers,
-      // we can use the original lane assignment
-      if (nitro.lane === snailLane &&
-          Math.abs(nitro.y - snailY) < 50 &&
-          Math.abs(nitro.position - snailLanePos) < 40) {
-        return true;
-      }
-      return false;
-    });
-    
-    if (nitroCollision && !gameOver) {
-      // Remove the collected nitro booster
-      setNitroBoosters(prev => prev.filter(nitro => {
-        return !(nitro.lane === snailLane && 
-                Math.abs(nitro.y - snailY) < 50 &&
-                Math.abs(nitro.position - snailLanePos) < 40);
-      }));
+    // Only continue if game is not over
+    if (!gameOver) {
+      const nitroCollision = nitroBoosters.some(nitro => {
+        // Check if close vertically and horizontally (using actual positions)
+        // Check if the snail and nitro are in the same lane and close vertically
+        // Since nitro.position is calculated based on the same method as lane centers,
+        // we can use the original lane assignment
+        if (nitro.lane === snailLane &&
+            Math.abs(nitro.y - snailY) < 50 &&
+            Math.abs(nitro.position - snailLanePos) < 40) {
+          return true;
+        }
+        return false;
+      });
+      
+      if (nitroCollision && !gameOver) {
+        // Remove the collected nitro booster
+        setNitroBoosters(prev => prev.filter(nitro => {
+          return !(nitro.lane === snailLane && 
+                  Math.abs(nitro.y - snailY) < 50 &&
+                  Math.abs(nitro.position - snailLanePos) < 40);
+        }));
                   
-      // Boost the speed
-      speedRef.current += 1.0;
+        // Boost the speed
+        speedRef.current += 1.0;
+      }
     }
   }
   
