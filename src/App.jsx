@@ -48,7 +48,7 @@ function App() {
 function MenuScreen({ onStart }) {
   return (
     <div className="screen menu-screen">
-      <h1>ðŸŒ Snail Race ðŸŒ</h1>
+      <h1>🐌 Snail Race 🐌</h1>
       <p>Watch the snail accelerate forward!</p>
       <button onClick={onStart}>Start Game</button>
       <div className="instructions">
@@ -353,7 +353,7 @@ function GameWorld({ score, onGameOver }) {
               top: `${obstacle.y}px`
             }}
           >
-            âš°ï¸
+            ⚰️
           </div>
         ))}
         {nitroBoosters.map(nitro => (
@@ -365,46 +365,37 @@ function GameWorld({ score, onGameOver }) {
               top: `${nitro.y}px`
             }}
           >
-            ðŸš—ðŸ’¨
+            🚗💨
           </div>
         ))}
       </div>
     </div>
   )
 }
- f u n c t i o n   R o a d ( )   { 
-     r e t u r n   ( 
-         < d i v   c l a s s N a m e = \ 
- 
- r o a d \ > 
-             < d i v   c l a s s N a m e = \ r o a d - l i n e s \ > < / d i v > 
-             < d i v   c l a s s N a m e = \ l a n e 
- 
- l a n e - 1 \ > < / d i v > 
-             < d i v   c l a s s N a m e = \ l a n e 
- 
- l a n e - 2 \ > < / d i v > 
-             < d i v   c l a s s N a m e = \ l a n e 
- 
- l a n e - 3 \ > < / d i v > 
-         < / d i v > 
-     ) 
- } 
- 
- f u n c t i o n   S n a i l ( {   p o s i t i o n ,   s n a i l Y   } )   { 
-     r e t u r n   ( 
-         < d i v   
-             c l a s s N a m e = \ s n a i l \   
-             s t y l e = { {   
-                 l e f t :   $ { p o s i t i o n } p x ,   / /   P o s i t i o n   b a s e d   o n   p a s s e d   p o s i t i o n 
-                 t o p :   $ { s n a i l Y } p x   / /   P o s i t i o n   b a s e d   o n   s n a i l ' s   Y   p o s i t i o n   ( m o v i n g   u p w a r d ) 
-             } } 
-         > 
-             
-         < / d i v > 
-     ) 
- } 
- 
- e x p o r t   d e f a u l t   A p p 
- 
- 
+
+function Road() {
+  return (
+    <div className="road">
+      <div className="road-lines"></div>
+      <div className="lane lane-1"></div>
+      <div className="lane lane-2"></div>
+      <div className="lane lane-3"></div>
+    </div>
+  )
+}
+
+function Snail({ position, snailY }) {
+  return (
+    <div 
+      className="snail" 
+      style={{ 
+        left: `${position}px`, // Position based on passed position
+        top: `${snailY}px` // Position based on snail's Y position (moving upward)
+      }}
+    >
+      🐌
+    </div>
+  )
+}
+
+export default App
