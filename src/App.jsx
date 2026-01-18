@@ -164,119 +164,115 @@ function App() {
     
     // Game loop - just move the snail forward
     useEffect(() => {
-      const updateGame = (timestamp) => {
-        if (!lastTimeRef.current) lastTimeRef.current = timestamp
+      let lastTime = 0
+      
+      const loop = (time) => {
+        if (gameOver) return
         
-        const deltaTime = timestamp - lastTimeRef.current
-        lastTimeRef.current = timestamp
+        const delta = time - lastTime
+        lastTime = time
         
-        if (!gameOver) {
-          // Move the snail forward
-          const newY = snailYRef.current + speedRef.current * (deltaTime / 16)
-          // When snail moves forward, the distance increases
-          if (newY - snailYRef.current > 0) {
-            const distanceIncrease = (newY - snailYRef.current) / 10
-            const newDist = distanceRef.current + distanceIncrease;
-            // Check if distance threshold is reached
-            if (newDist > 1000) { // After traveling 1000 meters
-              setGameOver(true);
-              onGameOver(newDist);
-            }
-            distanceRef.current = newDist;
-            // Update score to match distance
-            setScore(prevDist => prevDist + distanceIncrease);
-          }
-          snailYRef.current = newY;
-          
-          // Move obstacles and nitro boosters
-          setObstacles(prev => {
-            return prev
-              .map(obstacle => ({
-                ...obstacle,
-                y: obstacle.y + speedRef.current * (deltaTime / 16) // Move with same speed as snail
-              }))
-              .filter(obstacle => obstacle.y < 800); // Remove if off screen
-          });
-          
-          setNitroBoosters(prev => {
-            return prev
-              .map(nitro => ({
-                ...nitro,
-                y: nitro.y + speedRef.current * (deltaTime / 16) // Move with same speed as snail
-              }))
-              .filter(nitro => nitro.y < 800); // Remove if off screen
-          });
-          
-          // Check for collisions with obstacles
-          // Calculate which lane the snail is in based on its position
-          // Use the same calculation as in handleSnailDrag for consistency
-          const rect = roadRef.current?.getBoundingClientRect();
-          const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
-          let snailLane = rect ? Math.floor(snailPosition / actualLaneWidth) : Math.floor(snailPosition / 100);
-          
-          // Ensure lane is within bounds
-          snailLane = Math.min(2, Math.max(0, snailLane));
-          
-          const snailLanePos = snailPosition; // Use actual snail position, not lane center
-          
-          // Check for collision with sharp obstacles
-          const obstacleCollision = obstacles.some(obstacle => {
-            // Check if close vertically and horizontally (using actual positions)
-            // Check if the snail and obstacle are in the same lane and close vertically
-            // Since obstacle.position is calculated based on the same method as lane centers,
-            // we can use the original lane assignment
-            if (obstacle.lane === snailLane &&
-                Math.abs(obstacle.y - snailYRef.current) < 50 &&
-                Math.abs(obstacle.position - snailLanePos) < 40) {
-              return true;
-            }
-            return false;
-          });
-          
-          if (obstacleCollision && !gameOver) {
-            setGameOver(true);
-            onGameOver(distanceRef.current);
-          }
-          
-          // Check for collision with nitro boosters
-          const nitroCollision = nitroBoosters.some(nitro => {
-            // Check if close vertically and horizontally (using actual positions)
-            // Check if the snail and nitro are in the same lane and close vertically
-            // Since nitro.position is calculated based on the same method as lane centers,
-            // we can use the original lane assignment
-            if (nitro.lane === snailLane &&
-                Math.abs(nitro.y - snailYRef.current) < 50 &&
-                Math.abs(nitro.position - snailLanePos) < 40) {
-              return true;
-            }
-            return false;
-          });
-          
-          if (nitroCollision && !gameOver) {
-            // Remove the collected nitro booster
-            setNitroBoosters(prev => prev.filter(nitro => {
-              return !(nitro.lane === snailLane && 
-                      Math.abs(nitro.y - snailY) < 50 &&
-                      Math.abs(nitro.position - snailLanePos) < 40);
-            }));
-            
-            // Boost the speed
-            speedRef.current += 1.0;
-          }
-          
-          animationFrameRef.current = requestAnimationFrame(updateGame);
+        // forward movement
+        snailYRef.current += speedRef.current * (delta / 16)
+        distanceRef.current += speedRef.current * 0.1
+        
+        // light UI update only
+        setSnailY(snailYRef.current)
+        setScore(distanceRef.current)
+        
+        // gradual speed increase
+        speedRef.current += 0.002
+        
+        // end game
+        if (distanceRef.current >= 1000) {
+          setGameOver(true)
+          onGameOver(distanceRef.current)
+          return
         }
+        
+        // Move obstacles and nitro boosters
+        setObstacles(prev => {
+          return prev
+            .map(obstacle => ({
+              ...obstacle,
+              y: obstacle.y + speedRef.current * (delta / 16) // Move with same speed as snail
+            }))
+            .filter(obstacle => obstacle.y < 800); // Remove if off screen
+        });
+        
+        setNitroBoosters(prev => {
+          return prev
+            .map(nitro => ({
+              ...nitro,
+              y: nitro.y + speedRef.current * (delta / 16) // Move with same speed as snail
+            }))
+            .filter(nitro => nitro.y < 800); // Remove if off screen
+        });
+        
+        // Check for collisions with obstacles
+        // Calculate which lane the snail is in based on its position
+        // Use the same calculation as in handleSnailDrag for consistency
+        const rect = roadRef.current?.getBoundingClientRect();
+        const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
+        let snailLane = rect ? Math.floor(snailPosition / actualLaneWidth) : Math.floor(snailPosition / 100);
+        
+        // Ensure lane is within bounds
+        snailLane = Math.min(2, Math.max(0, snailLane));
+        
+        const snailLanePos = snailPosition; // Use actual snail position, not lane center
+        
+        // Check for collision with sharp obstacles
+        const obstacleCollision = obstacles.some(obstacle => {
+          // Check if close vertically and horizontally (using actual positions)
+          // Check if the snail and obstacle are in the same lane and close vertically
+          // Since obstacle.position is calculated based on the same method as lane centers,
+          // we can use the original lane assignment
+          if (obstacle.lane === snailLane &&
+              Math.abs(obstacle.y - snailYRef.current) < 50 &&
+              Math.abs(obstacle.position - snailLanePos) < 40) {
+            return true;
+          }
+          return false;
+        });
+        
+        if (obstacleCollision && !gameOver) {
+          setGameOver(true);
+          onGameOver(distanceRef.current);
+        }
+        
+        // Check for collision with nitro boosters
+        const nitroCollision = nitroBoosters.some(nitro => {
+          // Check if close vertically and horizontally (using actual positions)
+          // Check if the snail and nitro are in the same lane and close vertically
+          // Since nitro.position is calculated based on the same method as lane centers,
+          // we can use the original lane assignment
+          if (nitro.lane === snailLane &&
+              Math.abs(nitro.y - snailYRef.current) < 50 &&
+              Math.abs(nitro.position - snailLanePos) < 40) {
+            return true;
+          }
+          return false;
+        });
+        
+        if (nitroCollision && !gameOver) {
+          // Remove the collected nitro booster
+          setNitroBoosters(prev => prev.filter(nitro => {
+            return !(nitro.lane === snailLane && 
+                    Math.abs(nitro.y - snailYRef.current) < 50 &&
+                    Math.abs(nitro.position - snailLanePos) < 40);
+          }));
+          
+          // Boost the speed
+          speedRef.current += 1.0;
+        }
+        
+        animationFrameRef.current = requestAnimationFrame(loop)
       }
       
-      animationFrameRef.current = requestAnimationFrame(updateGame);
+      animationFrameRef.current = requestAnimationFrame(loop)
       
-      return () => {
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-        
-      };
-    }, [snailPosition, gameOver, onGameOver, obstacles, nitroBoosters])
+      return () => cancelAnimationFrame(animationFrameRef.current)
+    }, [gameOver])
     
     const handleSnailDrag = (clientX) => {
       if (!roadRef.current || gameOver) return
