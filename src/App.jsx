@@ -152,7 +152,7 @@ function GameWorld({ score, onGameOver }) {
     }, 2000); // Generate every 2 seconds
     
     return () => clearInterval(obstacleInterval);
-  }, [gameOver])
+  }, [])
   
   // Generate nitro boosters
   useEffect(() => {
@@ -184,7 +184,7 @@ function GameWorld({ score, onGameOver }) {
     }, 3000); // Generate every 3 seconds
     
     return () => clearInterval(nitroInterval);
-  }, [gameOver])
+  }, [])
   
   // Game loop - just move the snail forward
   useEffect(() => {
