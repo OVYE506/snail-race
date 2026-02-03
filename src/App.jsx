@@ -77,7 +77,6 @@ function GameWorld({ score, onGameOver }) {
   const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [snailY, setSnailY] = useState(100)
   const [gameOver, setGameOver] = useState(false)
-  const gameOverRef = useRef(false)
   const [roadOffset, setRoadOffset] = useState(0) // For curvy road effect
   const [obstacles, setObstacles] = useState([]) // Store obstacles
   const [nitroBoosters, setNitroBoosters] = useState([]) // Store nitro boosters
@@ -101,7 +100,7 @@ function GameWorld({ score, onGameOver }) {
     }, 1000) // Increase speed every second
     
     return () => clearInterval(speedInterval)
-  }, [gameOver])
+  }, [])
   
   // Curvy road effect - affects entire pathway
   useEffect(() => {
@@ -121,7 +120,7 @@ function GameWorld({ score, onGameOver }) {
     }, 100) // Update frequently for smooth curves
     
     return () => clearInterval(roadInterval)
-  }, [gameOver])
+  }, [])
   
   // Generate obstacles
   useEffect(() => {
@@ -193,7 +192,7 @@ function GameWorld({ score, onGameOver }) {
     let isActive = true; // Flag to track if the game loop should continue
     
     const loop = (time) => {
-      if (!isActive || gameOverRef.current) {
+      if (!isActive || gameOver) {
         return;
       }
       
@@ -204,7 +203,7 @@ function GameWorld({ score, onGameOver }) {
       updateGameState(delta);
       
       // Check immediately if game is over after state update
-      if (gameOverRef.current) {
+      if (gameOver) {
         return;
       }
       
@@ -223,12 +222,12 @@ function GameWorld({ score, onGameOver }) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [gameOver])
+  }, [])
   
   // Helper function to update game state
   const updateGameState = (delta) => {
     // Don't update state if game is over
-    if (gameOverRef.current) return;
+    if (gameOver) return;
     
     // forward movement
     snailYRef.current += speedRef.current * (delta / 16)
@@ -240,7 +239,6 @@ function GameWorld({ score, onGameOver }) {
     // end game
     if (distanceRef.current >= 1000) {
       setGameOver(true);
-      gameOverRef.current = true;
       onGameOver(distanceRef.current);
       return;
     }
@@ -290,16 +288,15 @@ function GameWorld({ score, onGameOver }) {
       return false;
     });
     
-    if (obstacleCollision && !gameOverRef.current) {
+    if (obstacleCollision && !gameOver) {
       setGameOver(true);
-      gameOverRef.current = true;
       onGameOver(distanceRef.current);
       return;
     }
     
     // Check for collision with nitro boosters
     // Only continue if game is not over
-    if (!gameOverRef.current) {
+    if (!gameOver) {
       const nitroCollision = nitroBoosters.some(nitro => {
         // Check if close vertically and horizontally (using actual positions)
         // Check if the snail and nitro are in the same lane and close vertically
@@ -313,7 +310,7 @@ function GameWorld({ score, onGameOver }) {
         return false;
       });
       
-      if (nitroCollision && !gameOverRef.current) {
+      if (nitroCollision && !gameOver) {
         // Remove the collected nitro booster
         setNitroBoosters(prev => prev.filter(nitro => {
           return !(nitro.lane === snailLane && 
@@ -328,7 +325,7 @@ function GameWorld({ score, onGameOver }) {
   }
   
   const handleSnailDrag = (clientX) => {
-    if (!roadRef.current || gameOverRef.current) return
+    if (!roadRef.current || gameOver) return
     
     const rect = roadRef.current?.getBoundingClientRect()
     if (!rect) return
