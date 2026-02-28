@@ -142,8 +142,6 @@ function GameWorld({ score, onGameOver }) {
   
   // Generate obstacles
   useEffect(() => {
-    if (gameOver) return;
-    
     const obstacleInterval = setInterval(() => {
       if (!gameOver) {
         // Randomly decide to generate an obstacle (30% chance)
@@ -174,8 +172,6 @@ function GameWorld({ score, onGameOver }) {
   
   // Generate nitro boosters
   useEffect(() => {
-    if (gameOver) return;
-    
     const nitroInterval = setInterval(() => {
       if (!gameOver) {
         // Randomly decide to generate a nitro booster (20% chance)
