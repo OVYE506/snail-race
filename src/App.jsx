@@ -89,6 +89,12 @@ function GameWorld({ score, onGameOver }) {
   const animationFrameRef = useRef(null)
   const lastTimeRef = useRef(null)
   const isDraggingRef = useRef(false)
+  const gameOverRef = useRef(false)
+  
+  // Sync gameOver state with ref
+  useEffect(() => {
+    gameOverRef.current = gameOver
+  }, [gameOver])
   
   // Reset game state when component mounts (new game starts)
   useEffect(() => {
@@ -106,12 +112,13 @@ function GameWorld({ score, onGameOver }) {
     distanceRef.current = 0
     lastTimeRef.current = null
     isDraggingRef.current = false
+    gameOverRef.current = false
   }, [])
   
   // Increase speed over time
   useEffect(() => {
     const speedInterval = setInterval(() => {
-      if (!gameOver) {
+      if (!gameOverRef.current) {
         // Increase speed gradually
         speedRef.current += 0.1
       }
@@ -123,7 +130,7 @@ function GameWorld({ score, onGameOver }) {
   // Curvy road effect - affects entire pathway
   useEffect(() => {
     const roadInterval = setInterval(() => {
-      if (!gameOver) {
+      if (!gameOverRef.current) {
         // Create a gentle curve in the road
         setRoadOffset(prev => {
           const newValue = prev + (Math.random() - 0.5) * 2; // Small random movement
@@ -143,7 +150,7 @@ function GameWorld({ score, onGameOver }) {
   // Generate obstacles
   useEffect(() => {
     const obstacleInterval = setInterval(() => {
-      if (!gameOver) {
+      if (!gameOverRef.current) {
         // Randomly decide to generate an obstacle (30% chance)
         if (Math.random() < 0.3) {
           const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
@@ -173,7 +180,7 @@ function GameWorld({ score, onGameOver }) {
   // Generate nitro boosters
   useEffect(() => {
     const nitroInterval = setInterval(() => {
-      if (!gameOver) {
+      if (!gameOverRef.current) {
         // Randomly decide to generate a nitro booster (20% chance)
         if (Math.random() < 0.2) {
           const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
@@ -206,7 +213,7 @@ function GameWorld({ score, onGameOver }) {
     let isActive = true; // Flag to track if the game loop should continue
     
     const loop = (time) => {
-      if (!isActive || gameOver) {
+      if (!isActive || gameOverRef.current) {
         return;
       }
       
@@ -217,7 +224,7 @@ function GameWorld({ score, onGameOver }) {
       updateGameState(delta);
       
       // Check immediately if game is over after state update
-      if (gameOver) {
+      if (gameOverRef.current) {
         return;
       }
       
@@ -241,7 +248,7 @@ function GameWorld({ score, onGameOver }) {
   // Helper function to update game state
   const updateGameState = (delta) => {
     // Don't update state if game is over
-    if (gameOver) return;
+    if (gameOverRef.current) return;
     
     // forward movement
     snailYRef.current += speedRef.current * (delta / 16)
@@ -302,7 +309,7 @@ function GameWorld({ score, onGameOver }) {
       return false;
     });
     
-    if (obstacleCollision && !gameOver) {
+    if (obstacleCollision && !gameOverRef.current) {
       setGameOver(true);
       onGameOver(distanceRef.current);
       return;
@@ -310,7 +317,7 @@ function GameWorld({ score, onGameOver }) {
     
     // Check for collision with nitro boosters
     // Only continue if game is not over
-    if (!gameOver) {
+    if (!gameOverRef.current) {
       const nitroCollision = nitroBoosters.some(nitro => {
         // Check if close vertically and horizontally (using actual positions)
         // Check if the snail and nitro are in the same lane and close vertically
