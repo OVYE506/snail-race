@@ -90,6 +90,24 @@ function GameWorld({ score, onGameOver }) {
   const lastTimeRef = useRef(null)
   const isDraggingRef = useRef(false)
   
+  // Reset game state when component mounts (new game starts)
+  useEffect(() => {
+    // Reset all game state
+    setGameOver(false)
+    setObstacles([])
+    setNitroBoosters([])
+    setSnailPosition(150)
+    setSnailY(100)
+    setRoadOffset(0)
+    
+    // Reset all refs
+    speedRef.current = 2
+    snailYRef.current = 100
+    distanceRef.current = 0
+    lastTimeRef.current = null
+    isDraggingRef.current = false
+  }, [])
+  
   // Increase speed over time
   useEffect(() => {
     const speedInterval = setInterval(() => {
