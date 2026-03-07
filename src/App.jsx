@@ -25,7 +25,10 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app" style={{background: 'red'}}>
+      <div style={{color: 'white', fontSize: '24px', padding: '20px'}}>
+        Game State: {gameState}
+      </div>
       {gameState === 'menu' && (
         <MenuScreen onStart={() => startGame()} />
       )}
