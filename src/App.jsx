@@ -33,6 +33,7 @@ function App() {
         <GameWorld 
           score={score} 
           onGameOver={(finalScore) => endGame(finalScore)}
+          onScoreUpdate={(newScore) => updateScore(newScore)}
         />
       )}
       {gameState === 'gameOver' && (
@@ -73,7 +74,7 @@ function GameOverScreen({ score, onRestart }) {
   )
 }
 
-function GameWorld({ score, onGameOver }) {
+function GameWorld({ score, onGameOver, onScoreUpdate }) {
   const [snailPosition, setSnailPosition] = useState(150) // Center of 300px road (lane 1)
   const [snailY, setSnailY] = useState(100)
   const [gameOver, setGameOver] = useState(false)
@@ -234,7 +235,7 @@ function GameWorld({ score, onGameOver }) {
       
       // Update UI
       setSnailY(snailYRef.current)
-      setScore(distanceRef.current)
+      onScoreUpdate(distanceRef.current)
       
       animationFrameRef.current = requestAnimationFrame(loop)
     }
