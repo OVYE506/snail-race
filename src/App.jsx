@@ -90,6 +90,7 @@ function GameWorld({ score, onGameOver }) {
   const lastTimeRef = useRef(null)
   const isDraggingRef = useRef(false)
   const gameOverRef = useRef(false)
+  const initializedRef = useRef(false)
   
   // Sync gameOver state with ref
   useEffect(() => {
@@ -98,6 +99,9 @@ function GameWorld({ score, onGameOver }) {
   
   // Reset game state when component mounts (new game starts)
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    
     // Reset all game state
     setGameOver(false)
     setObstacles([])
@@ -117,153 +121,132 @@ function GameWorld({ score, onGameOver }) {
   
   // Increase speed over time
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const speedInterval = setInterval(() => {
-        if (!gameOverRef.current) {
-          // Increase speed gradually
-          speedRef.current += 0.1
-        }
-      }, 1000) // Increase speed every second
-      
-      return () => clearInterval(speedInterval)
-    }, 100);
+    const speedInterval = setInterval(() => {
+      if (!gameOverRef.current) {
+        // Increase speed gradually
+        speedRef.current += 0.1
+      }
+    }, 1000) // Increase speed every second
     
-    return () => clearTimeout(timeoutId);
+    return () => clearInterval(speedInterval)
   }, [])
   
   // Curvy road effect - affects entire pathway
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const roadInterval = setInterval(() => {
-        if (!gameOverRef.current) {
-          // Create a gentle curve in the road
-          setRoadOffset(prev => {
-            const newValue = prev + (Math.random() - 0.5) * 2; // Small random movement
-            
-            // Keep road offset within bounds
-            if (newValue > 20 || newValue < -20) {
-              return newValue * 0.9; // Gradually return to center
-            }
-            return newValue;
-          });
-        }
-      }, 100) // Update frequently for smooth curves
-      
-      return () => clearInterval(roadInterval)
-    }, 100);
+    const roadInterval = setInterval(() => {
+      if (!gameOverRef.current) {
+        // Create a gentle curve in the road
+        setRoadOffset(prev => {
+          const newValue = prev + (Math.random() - 0.5) * 2; // Small random movement
+          
+          // Keep road offset within bounds
+          if (newValue > 20 || newValue < -20) {
+            return newValue * 0.9; // Gradually return to center
+          }
+          return newValue;
+        });
+      }
+    }, 100) // Update frequently for smooth curves
     
-    return () => clearTimeout(timeoutId);
+    return () => clearInterval(roadInterval)
   }, [])
   
   // Generate obstacles
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const obstacleInterval = setInterval(() => {
-        if (!gameOverRef.current) {
-          // Randomly decide to generate an obstacle (30% chance)
-          if (Math.random() < 0.3) {
-            const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
-            // Calculate lane position based on actual road width
-            const rect = roadRef.current?.getBoundingClientRect();
-            const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
-            const lanePositions = [
-              actualLaneWidth / 2,           // Left lane center
-              actualLaneWidth * 1.5,       // Middle lane center
-              actualLaneWidth * 2.5        // Right lane center
-            ];
-            const newObstacle = {
-              id: Date.now() + Math.random(),
-              lane,
-              position: lanePositions[lane],
-              y: -50, // Start above the screen
-              type: 'sharp' // sharp obstacle
-            };
-            setObstacles(prev => [...prev, newObstacle]);
-          }
+    const obstacleInterval = setInterval(() => {
+      if (!gameOverRef.current) {
+        // Randomly decide to generate an obstacle (30% chance)
+        if (Math.random() < 0.3) {
+          const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
+          // Calculate lane position based on actual road width
+          const rect = roadRef.current?.getBoundingClientRect();
+          const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
+          const lanePositions = [
+            actualLaneWidth / 2,           // Left lane center
+            actualLaneWidth * 1.5,       // Middle lane center
+            actualLaneWidth * 2.5        // Right lane center
+          ];
+          const newObstacle = {
+            id: Date.now() + Math.random(),
+            lane,
+            position: lanePositions[lane],
+            y: -50, // Start above the screen
+            type: 'sharp' // sharp obstacle
+          };
+          setObstacles(prev => [...prev, newObstacle]);
         }
-      }, 2000); // Generate every 2 seconds
-      
-      return () => clearInterval(obstacleInterval);
-    }, 100);
+      }
+    }, 2000); // Generate every 2 seconds
     
-    return () => clearTimeout(timeoutId);
+    return () => clearInterval(obstacleInterval);
   }, [])
   
   // Generate nitro boosters
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const nitroInterval = setInterval(() => {
-        if (!gameOverRef.current) {
-          // Randomly decide to generate a nitro booster (20% chance)
-          if (Math.random() < 0.2) {
-            const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
-            // Calculate lane position based on actual road width
-            const rect = roadRef.current?.getBoundingClientRect();
-            const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
-            const lanePositions = [
-              actualLaneWidth / 2,           // Left lane center
-              actualLaneWidth * 1.5,       // Middle lane center
-              actualLaneWidth * 2.5        // Right lane center
-            ];
-            const newNitro = {
-              id: Date.now() + Math.random(),
-              lane,
-              position: lanePositions[lane],
-              y: -50, // Start above the screen
-              type: 'nitro' // nitro booster
-            };
-            setNitroBoosters(prev => [...prev, newNitro]);
-          }
+    const nitroInterval = setInterval(() => {
+      if (!gameOverRef.current) {
+        // Randomly decide to generate a nitro booster (20% chance)
+        if (Math.random() < 0.2) {
+          const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
+          // Calculate lane position based on actual road width
+          const rect = roadRef.current?.getBoundingClientRect();
+          const actualLaneWidth = rect ? rect.width / 3 : 100; // Use actual road width if available, fallback to 100
+          const lanePositions = [
+            actualLaneWidth / 2,           // Left lane center
+            actualLaneWidth * 1.5,       // Middle lane center
+            actualLaneWidth * 2.5        // Right lane center
+          ];
+          const newNitro = {
+            id: Date.now() + Math.random(),
+            lane,
+            position: lanePositions[lane],
+            y: -50, // Start above the screen
+            type: 'nitro' // nitro booster
+          };
+          setNitroBoosters(prev => [...prev, newNitro]);
         }
-      }, 3000); // Generate every 3 seconds
-      
-      return () => clearInterval(nitroInterval);
-    }, 100);
+      }
+    }, 3000); // Generate every 3 seconds
     
-    return () => clearTimeout(timeoutId);
+    return () => clearInterval(nitroInterval);
   }, [])
   
   // Game loop - just move the snail forward
   useEffect(() => {
-    // Small delay to ensure reset effect has run
-    const timeoutId = setTimeout(() => {
-      let lastTime = 0
-      let isActive = true; // Flag to track if the game loop should continue
-      
-      const loop = (time) => {
-        if (!isActive || gameOverRef.current) {
-          return;
-        }
-        
-        const delta = time - lastTime
-        lastTime = time
-        
-        // Update game state
-        updateGameState(delta);
-        
-        // Check immediately if game is over after state update
-        if (gameOverRef.current) {
-          return;
-        }
-        
-        // Update UI
-        setSnailY(snailYRef.current)
-        setScore(distanceRef.current)
-        
-        animationFrameRef.current = requestAnimationFrame(loop)
+    let lastTime = 0
+    let isActive = true; // Flag to track if the game loop should continue
+    
+    const loop = (time) => {
+      if (!isActive || gameOverRef.current) {
+        return;
       }
       
-      animationFrameRef.current = requestAnimationFrame(loop)
+      const delta = time - lastTime
+      lastTime = time
       
-      return () => {
-        isActive = false; // Set flag to stop the loop
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-      };
-    }, 100); // 100ms delay to ensure initialization is complete
+      // Update game state
+      updateGameState(delta);
+      
+      // Check immediately if game is over after state update
+      if (gameOverRef.current) {
+        return;
+      }
+      
+      // Update UI
+      setSnailY(snailYRef.current)
+      setScore(distanceRef.current)
+      
+      animationFrameRef.current = requestAnimationFrame(loop)
+    }
     
-    return () => clearTimeout(timeoutId);
+    animationFrameRef.current = requestAnimationFrame(loop)
+    
+    return () => {
+      isActive = false; // Set flag to stop the loop
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, [])
   
   // Helper function to update game state
