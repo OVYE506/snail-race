@@ -91,7 +91,6 @@ function GameWorld({ score, onGameOver, onScoreUpdate }) {
   const lastTimeRef = useRef(null)
   const isDraggingRef = useRef(false)
   const gameOverRef = useRef(false)
-  const initializedRef = useRef(false)
   
   // Sync gameOver state with ref
   useEffect(() => {
@@ -100,9 +99,6 @@ function GameWorld({ score, onGameOver, onScoreUpdate }) {
   
   // Reset game state when component mounts (new game starts)
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-    
     // Reset all game state
     setGameOver(false)
     setObstacles([])
@@ -118,6 +114,11 @@ function GameWorld({ score, onGameOver, onScoreUpdate }) {
     lastTimeRef.current = null
     isDraggingRef.current = false
     gameOverRef.current = false
+    
+    // Cleanup function to handle unmount
+    return () => {
+      gameOverRef.current = true
+    }
   }, [])
   
   // Increase speed over time
