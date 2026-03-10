@@ -2,7 +2,7 @@
 import './App.css'
 
 function App() {
-  const [gameState, setGameState] = useState('menu') // 'menu', 'playing', 'gameOver'
+  const [gameState, setGameState] = useState('menu')
   const [score, setScore] = useState(0)
   
   const endGame = (finalScore) => {
@@ -15,38 +15,48 @@ function App() {
     setScore(0)
   }
 
-  const startGame = (newScore = 0) => {
+  const startGame = () => {
     setGameState('playing')
-    setScore(newScore)
+    setScore(0)
   }
 
   const updateScore = (newScore) => {
     setScore(newScore)
   }
 
-  return (
-    <div className="app" style={{background: 'red'}}>
-      <div style={{color: 'white', fontSize: '24px', padding: '20px'}}>
-        Game State: {gameState}
+  // Simple render for debugging
+  if (gameState === 'menu') {
+    return (
+      <div className="app">
+        <MenuScreen onStart={startGame} />
       </div>
-      {gameState === 'menu' && (
-        <MenuScreen onStart={() => startGame()} />
-      )}
-      {gameState === 'playing' && (
+    )
+  }
+  
+  if (gameState === 'playing') {
+    return (
+      <div className="app">
         <GameWorld 
           score={score} 
-          onGameOver={(finalScore) => endGame(finalScore)}
-          onScoreUpdate={(newScore) => updateScore(newScore)}
+          onGameOver={endGame}
+          onScoreUpdate={updateScore}
         />
-      )}
-      {gameState === 'gameOver' && (
+      </div>
+    )
+  }
+  
+  if (gameState === 'gameOver') {
+    return (
+      <div className="app">
         <GameOverScreen 
           score={score} 
-          onRestart={() => restartGame()} 
+          onRestart={restartGame} 
         />
-      )}
-    </div>
-  )
+      </div>
+    )
+  }
+  
+  return <div className="app">Loading...</div>
 }
 
 function MenuScreen({ onStart }) {
