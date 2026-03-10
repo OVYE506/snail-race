@@ -2,6 +2,7 @@
 import './App.css'
 
 function App() {
+  console.log('App component rendering')
   const [gameState, setGameState] = useState('menu')
   const [score, setScore] = useState(0)
   
@@ -25,9 +26,12 @@ function App() {
   }
 
   // Simple render for debugging
+  console.log('Rendering gameState:', gameState)
+  
   if (gameState === 'menu') {
     return (
       <div className="app">
+        <h1 style={{color: 'white', textAlign: 'center'}}>MENU SCREEN</h1>
         <MenuScreen onStart={startGame} />
       </div>
     )
